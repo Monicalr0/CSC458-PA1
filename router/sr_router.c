@@ -67,5 +67,14 @@ void sr_handlepacket(struct sr_instance* sr,
 
   /* fill in code here */
 
+  if (ethertype(packet) == ethertype_ip){
+    printf("Received packet is IP\n");
+  }
+
+  else if(ethertype(packet)== ethertype_arp){
+    printf("Received packet is ARP\n");
+  }
+
+
 }/* end sr_ForwardPacket */
 

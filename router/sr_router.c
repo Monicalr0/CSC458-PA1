@@ -9,6 +9,11 @@
 #include "sr_arpcache.h"
 #include "sr_utils.h"
 
+void handle_arp(struct sr_instance* sr,
+        uint8_t * packet/* lent */,
+        unsigned int len,
+        char* interface/* lent */);
+
 /*---------------------------------------------------------------------
  * Method: sr_init(void)
  * Scope:  Global
@@ -95,7 +100,7 @@ void handle_arp(struct sr_instance* sr,
     return;
   }
   sr_arp_hdr_t *received_arp_hdr =  (sr_arp_hdr_t *) (packet + sizeof(sr_ethernet_hdr_t));
-  sr_ethernet_hdr_t *received_ether_hdr =  (sr_ip_hdr_t *) (packet + sizeof(sr_ethernet_hdr_t));
+  sr_ethernet_hdr_t *received_ether_hdr = (sr_ethernet_hdr_t *) (packet + sizeof(sr_ethernet_hdr_t));
   struct sr_if *current_interface = sr_get_interface(sr, interface);
 
   /* ARP packet is requesting */
@@ -104,12 +109,12 @@ void handle_arp(struct sr_instance* sr,
       printf("ARP packet is not targeting this interface\n");
       return;
     }
-    printf("ARP packet is requesting")
+    printf("ARP packet is requesting");
     /* Send reply packet to the sender */
     uint8_t *reply_packet = (uint8_t *) malloc(len);
 
     /* Set values for reply ethernet header */
-    sr_ethernet_hdr_t *reply_ether_hdr =  (sr_ip_hdr_t *) (reply_packet + sizeof(sr_ethernet_hdr_t));
+    sr_ethernet_hdr_t *reply_ether_hdr = (sr_ethernet_hdr_t *) (reply_packet + sizeof(sr_ethernet_hdr_t));
     /* the source address is the address of router's current interface */
     memcpy(reply_ether_hdr->ether_shost, current_interface->addr, sizeof(uint8_t)*ETHER_ADDR_LEN);
     /* the destination address is the source address of received packet */
@@ -136,8 +141,8 @@ void handle_arp(struct sr_instance* sr,
   }
 
   /* ARP packet is replying */
-  else if (arp_op_reply == ntohs(received_arp_header->ar_op)) { 
-    printf("ARP packet is replying")
+  else if (arp_op_reply == ntohs(received_arp_hdr->ar_op)) { 
+    printf("ARP packet is replying");
   }
     return;
 }

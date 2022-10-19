@@ -150,12 +150,12 @@ void handle_arp(struct sr_instance* sr,
     /* Insert the received packet's source IP to MAC mapping in the router's cache, and marks it valid */
     struct sr_arpcache *cache = &(sr->cache);
     unsigned char *mac = received_arp_hdr->ar_sha;
-    uint32_t ip = received_arp_hdr->ar_sha;
+    uint32_t ip = received_arp_hdr->ar_sip;
     struct sr_arpreq *request = sr_arpcache_insert(cache, mac, ip);
 
     /* If succesfully inserted to the router's cache*/
     if (request) {
-      struct sr_packet *waiting_packet = req->packets;
+      struct sr_packet *waiting_packet = request->packets;
       /*Send all packets waiting for the request to finish*/
       while (waiting_packet) {
         /*Initialize header for the raw ethernet frame of the waiting packet*/

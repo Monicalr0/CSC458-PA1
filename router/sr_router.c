@@ -105,14 +105,14 @@ void handle_arp(struct sr_instance* sr,
       return;
     }
     printf("ARP packet is requesting")
-    // Send reply packet to the sender
+    /* Send reply packet to the sender */
     uint8_t *reply_packet = (uint8_t *) malloc(len);
 
     /* Set values for reply ethernet header */
     sr_ethernet_hdr_t *reply_ether_hdr =  (sr_ip_hdr_t *) (reply_packet + sizeof(sr_ethernet_hdr_t));
-    // the source address is the address of router's current interface
+    /* the source address is the address of router's current interface */
     memcpy(reply_ether_hdr->ether_shost, current_interface->addr, sizeof(uint8_t)*ETHER_ADDR_LEN);
-    // the destination address is the source address of received packet
+    /* the destination address is the source address of received packet */
     memcpy(reply_ether_hdr->ether_shost, received_arp_hdr->ether_shost, sizeof(uint8_t)*ETHER_ADDR_LEN);
     reply_ether_hdr->ether_type = htons(ethertype_arp);
 
@@ -123,14 +123,14 @@ void handle_arp(struct sr_instance* sr,
     reply_arp_hdr->ar_hln = received_arp_hdr->ar_hln;
     reply_arp_hdr->ar_pln = received_arp_hdr->ar_pln;
     reply_arp_hdr->ar_op = htons(arp_op_reply);
-    // Sender of the reply packet is the router's current interface
+    /* Sender of the reply packet is the router's current interface */
     memcpy(reply_arp_hdr->ar_sha, current_interface->addr, ETHER_ADDR_LEN);
     reply_arp_hdr->ar_sip = current_interface->ip;
-    // Target of the reply packet is the source of received packet
+    /* Target of the reply packet is the source of received packet */
     memcpy(reply_arp_hdr->ar_tha, received_arp_hdr->ether_shost, ETHER_ADDR_LEN);
     reply_arp_header->ar_tip = received_arp_hdr->ar_sip;
 
-    // Send the reply packet and free the malloc space
+    /* Send the reply packet and free the malloc space */
     sr_send_packet(sr, reply_packet, len, interface);
     free(reply_packet);
   }

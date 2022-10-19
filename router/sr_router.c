@@ -81,7 +81,9 @@ void sr_handlepacket(struct sr_instance* sr,
 
   if (ethertype(packet) == ethertype_ip){
     printf("Received packet is IP\n");
+    handle_ip(sr, packet, len, interface);
   }
+ 
   else if (ethertype(packet) == ethertype_arp){
     printf("Received packet is ARP\n");
     handle_arp(sr, packet, len, interface);
@@ -147,15 +149,26 @@ void handle_arp(struct sr_instance* sr,
   /* ARP packet is a reply with information of the sender to the current interface */
   else if (arp_op_reply == ntohs(received_arp_hdr->ar_op)) { 
     printf("ARP packet is replying");
-    /* Insert the received packet's source IP to MAC mapping in the router's cache, and marks it valid */
+    /* The implemented algorithm is from line 39-47 from sr_arpache.h:
+
+    The ARP reply processing code should move entries from the ARP request
+    queue to the ARP cache:
+
+    # When servicing an arp reply that gives us an IP->MAC mapping
+    req = arpcache_insert(ip, mac)
+
+    if req:
+      send all packets on the req->packets linked list
+      arpreq_destroy(req) */
+    
     struct sr_arpcache *cache = &(sr->cache);
     unsigned char *mac = received_arp_hdr->ar_sha;
     uint32_t ip = received_arp_hdr->ar_sip;
-    struct sr_arpreq *request = sr_arpcache_insert(cache, mac, ip);
+    struct sr_arpreq *req = sr_arpcache_insert(cache, mac, ip);
 
     /* If succesfully inserted to the router's cache*/
-    if (request) {
-      struct sr_packet *waiting_packet = request->packets;
+    if (req) {
+      struct sr_packet *waiting_packet = req->packets;
       /*Send all packets waiting for the request to finish*/
       while (waiting_packet) {
         /*Initialize header for the raw ethernet frame of the waiting packet*/
@@ -170,8 +183,17 @@ void handle_arp(struct sr_instance* sr,
         waiting_packet = waiting_packet->next;
       }
       /* Free all memory associated with this arp request entry*/
-      sr_arpreq_destroy(cache, request);
+      sr_arpreq_destroy(cache, req);
     }
   }
-  return;
+}
+
+void handle_ip(struct sr_instance* sr,
+        uint8_t * packet/* lent */,
+        unsigned int len,
+        char* interface/* lent */)
+{
+  assert(sr);
+  assert(packet);
+  assert(interface);
 }

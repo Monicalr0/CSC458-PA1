@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
+#include <unistd.h>
 
 
 #include "sr_if.h"
@@ -134,7 +136,7 @@ void handle_arp(struct sr_instance* sr,
     reply_arp_hdr->ar_sip = current_interface->ip;
     /* Target of the reply packet is the source of received packet */
     memcpy(reply_arp_hdr->ar_tha, received_ether_hdr->ether_shost, ETHER_ADDR_LEN);
-    reply_arp_header->ar_tip = received_arp_hdr->ar_sip;
+    reply_arp_hdr->ar_tip = received_arp_hdr->ar_sip;
 
     /* Send the reply packet and free the malloc space */
     sr_send_packet(sr, reply_packet, len, interface);

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 
 
@@ -118,7 +119,7 @@ void handle_arp(struct sr_instance* sr,
     /* the source address is the address of router's current interface */
     memcpy(reply_ether_hdr->ether_shost, current_interface->addr, sizeof(uint8_t)*ETHER_ADDR_LEN);
     /* the destination address is the source address of received packet */
-    memcpy(reply_ether_hdr->ether_shost, received_arp_hdr->ether_shost, sizeof(uint8_t)*ETHER_ADDR_LEN);
+    memcpy(reply_ether_hdr->ether_shost, received_ether_hdr->ether_shost, sizeof(uint8_t)*ETHER_ADDR_LEN);
     reply_ether_hdr->ether_type = htons(ethertype_arp);
 
     /* Set values for reply ARP header */
@@ -132,7 +133,7 @@ void handle_arp(struct sr_instance* sr,
     memcpy(reply_arp_hdr->ar_sha, current_interface->addr, ETHER_ADDR_LEN);
     reply_arp_hdr->ar_sip = current_interface->ip;
     /* Target of the reply packet is the source of received packet */
-    memcpy(reply_arp_hdr->ar_tha, received_arp_hdr->ether_shost, ETHER_ADDR_LEN);
+    memcpy(reply_arp_hdr->ar_tha, received_ether_hdr->ether_shost, ETHER_ADDR_LEN);
     reply_arp_header->ar_tip = received_arp_hdr->ar_sip;
 
     /* Send the reply packet and free the malloc space */

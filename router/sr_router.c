@@ -102,30 +102,31 @@ void handle_arp(struct sr_instance* sr,
     fprintf(stderr,"Error: Packet is too small\n");
     return;
   }
-  sr_arp_hdr_t *received_arp_hdr =  (sr_arp_hdr_t *) (packet + sizeof(sr_ethernet_hdr_t));
-  sr_ethernet_hdr_t *received_ether_hdr = (sr_ethernet_hdr_t *) (packet + sizeof(sr_ethernet_hdr_t));
+  sr_ethernet_hdr_t *received_ether_hdr = (sr_ethernet_hdr_t *) (packet);
+  sr_arp_hdr_t *received_arp_hdr = (sr_arp_hdr_t *) (packet + sizeof(sr_ethernet_hdr_t));
   struct sr_if *current_interface = sr_get_interface(sr, interface);
 
-  /* ARP packet is requesting */
+  /* ARP packet is a request for IP address*/
   if (arp_op_request == ntohs(received_arp_hdr->ar_op)) {
+    /* The current interface of the router does not have the requested IP address*/
     if (received_arp_hdr->ar_tip != current_interface->ip) {
       printf("ARP packet is not targeting this interface\n");
       return;
     }
     printf("ARP packet is requesting");
-    /* Send reply packet to the sender */
+    /* Send reply packet containing information of the current interface to the sender of ARP packet*/
     uint8_t *reply_packet = (uint8_t *) malloc(len);
 
     /* Set values for reply ethernet header */
-    sr_ethernet_hdr_t *reply_ether_hdr = (sr_ethernet_hdr_t *) (reply_packet + sizeof(sr_ethernet_hdr_t));
+    sr_ethernet_hdr_t *reply_ether_hdr = (sr_ethernet_hdr_t *) (reply_packet);
     /* the source address is the address of router's current interface */
     memcpy(reply_ether_hdr->ether_shost, current_interface->addr, sizeof(uint8_t)*ETHER_ADDR_LEN);
     /* the destination address is the source address of received packet */
-    memcpy(reply_ether_hdr->ether_shost, received_ether_hdr->ether_shost, sizeof(uint8_t)*ETHER_ADDR_LEN);
+    memcpy(reply_ether_hdr->ether_dhost, received_ether_hdr->ether_shost, sizeof(uint8_t)*ETHER_ADDR_LEN);
     reply_ether_hdr->ether_type = htons(ethertype_arp);
 
     /* Set values for reply ARP header */
-    sr_arp_hdr_t *reply_arp_hdr =  (sr_arp_hdr_t *) (reply_packet + sizeof(sr_ethernet_hdr_t));
+    sr_arp_hdr_t *reply_arp_hdr = (sr_arp_hdr_t *) (reply_packet + sizeof(sr_ethernet_hdr_t));
     reply_arp_hdr->ar_hrd = received_arp_hdr->ar_hrd;
     reply_arp_hdr->ar_pro = received_arp_hdr->ar_pro;
     reply_arp_hdr->ar_hln = received_arp_hdr->ar_hln;
@@ -138,14 +139,39 @@ void handle_arp(struct sr_instance* sr,
     memcpy(reply_arp_hdr->ar_tha, received_ether_hdr->ether_shost, ETHER_ADDR_LEN);
     reply_arp_hdr->ar_tip = received_arp_hdr->ar_sip;
 
-    /* Send the reply packet and free the malloc space */
+    /* Send the reply packet to the sender and free the malloc space */
     sr_send_packet(sr, reply_packet, len, interface);
     free(reply_packet);
   }
 
-  /* ARP packet is replying */
+  /* ARP packet is a reply with information of the sender to the current interface */
   else if (arp_op_reply == ntohs(received_arp_hdr->ar_op)) { 
     printf("ARP packet is replying");
+    /* Insert the received packet's source IP to MAC mapping in the router's cache, and marks it valid */
+    struct sr_arpcache *cache = &(sr->cache);
+    unsigned char *mac = received_arp_hdr->ar_sha;
+    uint32_t ip = received_arp_hdr->ar_sha;
+    struct sr_arpreq *request = sr_arpcache_insert(cache, mac, ip);
+
+    /* If succesfully inserted to the router's cache*/
+    if (request) {
+      struct sr_packet *waiting_packet = req->packets;
+      /*Send all packets waiting for the request to finish*/
+      while (waiting_packet) {
+        /*Initialize header for the raw ethernet frame of the waiting packet*/
+        sr_ethernet_hdr_t *waiting_ether_hdr = (sr_ethernet_hdr_t *) waiting_packet->buf;
+        /* the source address is the address of router's current interface */
+        memcpy(waiting_ether_hdr->ether_shost, current_interface->addr, ETHER_ADDR_LEN);
+        /* the destination address is the source address of received packet */
+        memcpy(waiting_ether_hdr->ether_dhost, received_arp_hdr->ar_sha, ETHER_ADDR_LEN);
+
+        /* Send the waiting packet to the sender and set to the next packet until NULL*/
+        sr_send_packet(sr, waiting_packet->buf, waiting_packet->len, interface);
+        waiting_packet = waiting_packet->next;
+      }
+      /* Free all memory associated with this arp request entry*/
+      sr_arpreq_destroy(cache, request);
+    }
   }
-    return;
+  return;
 }

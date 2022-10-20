@@ -12,6 +12,8 @@
 #include "sr_protocol.h"
 #include "sr_utils.h"
 
+void handle_aqpreq(struct sr_instance *sr, struct sr_arpreq *req);
+
 /* 
     For every second the functions sends ARP request until it has been sent 5 times. 
     Then, send ICMP host unreachable back to all packets waiting on this ARP request

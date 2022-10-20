@@ -17,6 +17,11 @@ void handle_arp(struct sr_instance* sr,
         unsigned int len,
         char* interface/* lent */);
 
+void handle_ip(struct sr_instance* sr,
+        uint8_t * packet/* lent */,
+        unsigned int len,
+        char* interface/* lent */);
+
 /*---------------------------------------------------------------------
  * Method: sr_init(void)
  * Scope:  Global

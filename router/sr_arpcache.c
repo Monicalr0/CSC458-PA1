@@ -75,7 +75,7 @@ void handle_aqpreq(struct sr_instance *sr, struct sr_arpreq *req) {
                 sr_send_packet(sr, icmp_packet, len, waiting_iface->name);
                 free(icmp_packet);
 
-                waiting_packet = waiting_packet->next
+                waiting_packet = waiting_packet->next;
             }
             sr_arpreq_destroy(cache, req); 
         }
@@ -107,10 +107,10 @@ void handle_aqpreq(struct sr_instance *sr, struct sr_arpreq *req) {
             arp_req_arp_hdr->ar_op = htons(arp_op_request);
             /* Sender is the router's current interface */
             memcpy(arp_req_arp_hdr->ar_sha, waiting_iface->addr, ETHER_ADDR_LEN);
-            arp_req_hdr->ar_sip = waiting_iface->ip;
+            arp_req_arp_hdr->ar_sip = waiting_iface->ip;
             /* Target ip is the source of received request packet */
-            memcpy(arp_req_hdr->ar_tha, 0xff, ETHER_ADDR_LEN);
-            arp_req_hdr->ar_tip = req->ip;
+            memcpy(arp_req_arp_hdr->ar_tha, 0xff, ETHER_ADDR_LEN);
+            arp_req_arp_hdr->ar_tip = req->ip;
 
             /* Send the arp request packet and free the malloc space */
             sr_send_packet(sr, arp_req_packet, len, waiting_iface->name);

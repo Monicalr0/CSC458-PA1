@@ -12,8 +12,6 @@
 #include "sr_protocol.h"
 #include "sr_utils.h"
 
-void handle_aqpreq(struct sr_instance *sr, struct sr_arpreq *req);
-
 /* 
     For every second the functions sends ARP request until it has been sent 5 times. 
     Then, send ICMP host unreachable back to all packets waiting on this ARP request
@@ -30,7 +28,7 @@ void handle_aqpreq(struct sr_instance *sr, struct sr_arpreq *req) {
                     send arp request
                     req->sent = now
                     req->times_sent++ */
-    struct sr_arpcache *cache = &(sr->cache);
+    struct sr_arpcache *cache = &sr->cache;
     time_t now;
     time(&now);
     if (difftime(now, req->sent) > 1.0) {
@@ -138,7 +136,7 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
                 handle_arpreq(request)
         }                                                               */
 
-    struct sr_arpcache *cache = &(sr->cache);
+    struct sr_arpcache *cache = &sr->cache;
     struct sr_arpreq *request = cache->requests;
     struct sr_arpreq *next_request;
 

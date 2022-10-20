@@ -193,6 +193,23 @@ void handle_arp(struct sr_instance* sr,
   }
 }
 
+int is_for_me(struct sr_instance* sr, sr_ip_hdr_t * ip_hdr){
+  int result = 0;
+  struct sr_if * iface = sr->if_list;
+
+  if (iface->ip == ip_hdr->ip_dst){
+    result = 1;
+  } else{
+    while(iface = iface->next){
+      if (iface->ip == ip_hdr->ip_dst){
+        result = 1;
+        break;
+      }
+    }
+  }
+  return result;
+}
+
 void handle_ip(struct sr_instance* sr,
         uint8_t * packet/* lent */,
         unsigned int len,
@@ -201,4 +218,90 @@ void handle_ip(struct sr_instance* sr,
   assert(sr);
   assert(packet);
   assert(interface);
+
+  struct sr_if* iface = sr_get_interface(sr, interface); //ethernet interface
+  sr_ip_hdr_t *ip_hdr = (sr_ip_hdr_t * ) (packet + sizeof(sr_ethernet_hdr_t)); //ip header
+  sr_ethernet_hdr_t * e_hdr = (sr_ethernet_hdr_t *) packet;
+
+  // Sanity-check the packet (meets minimum length and has correct checksum).
+  int minLen = sizeof(sr_ethernet_hdr_t) + sizeof(sr_ip_hdr_t);
+  if (len < minLen){
+    fprintf(stderr,"Error: Packet is too small\n");
+    return;
+  }
+  int checksum = cksum(ip_hdr, sizeof(sr_ip_hdr_t)); //to do
+  if (checksum != ip_hdr->ip_sum){
+    fprintf(stderr,"Error: Packet has incorrect checksum\n");
+    return;
+  }
+
+  if (is_for_me(sr,ip_hdr)){
+    if (ip_hdr->ip_p == ip_protocol_icmp){
+      sr_icmp_hdr_t *icmp_hdr = (sr_icmp_hdr_t * )(packet + minLen);
+      // sanity check
+      int icmpMinLen = minLen + sizeof(sr_icmp_hdr_t);
+      if (len < minLen){
+        fprintf(stderr,"Error: Packet is too small\n");
+        return;
+      }
+      int checksum = cksum(icmp_hdr, len - minLen);
+      if (checksum != icmp_hdr->icmp_sum){
+        fprintf(stderr,"Error: Packet has incorrect checksum\n");
+        return;
+      }
+      
+      if (icmp_hdr->icmp_type == 8){ // ICMP request
+        ip_hdr->ip_dst = ip_hdr->ip_src;
+        ip_hdr->ip_src = iface->ip;
+        ip_hdr->ip_sum = cksum(ip_hdr, sizeof(sr_ip_hdr_t));
+        
+        icmp_hdr->icmp_type = 0; // echo reply
+        icmp_hdr->icmp_sum = cksum(icmp_hdr, len - minLen);
+
+        memcpy(e_hdr->ether_dhost, e_hdr->ether_shost, ETHER_ADDR_LEN);
+        memcpy(e_hdr->ether_shost, iface->addr, ETHER_ADDR_LEN);
+
+        // send echo reply
+        sr_send_packet(sr, packet, len, interface);
+      }
+
+    } else { // TCP/ UDP
+      // send icmp port unreachable
+      int sendLen = minLen + sizeof(sr_icmp_t3_hdr_t);
+      uint8_t * sendPacket = (uint8_t*) malloc (sendLen);
+      memset(sendPacket, 0, sendLen);
+
+      sr_ip_hdr_t * send_ip_hdr = (sr_ip_hdr_t *) (sendPacket + sizeof(sr_ethernet_hdr_t));
+      sr_ethernet_hdr_t * send_eth_hdr = (sr_ethernet_hdr_t *) sendPacket;
+
+      send_ip_hdr->ip_hl = ip_hdr->ip_hl;
+      send_ip_hdr->ip_v = ip_hdr->ip_v;
+      send_ip_hdr->ip_tos = ip_hdr->ip_tos;
+      send_ip_hdr->ip_len = htons(sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t));
+      send_ip_hdr->ip_id = ip_hdr->ip_id;
+      send_ip_hdr->ip_off = ip_hdr->ip_off;
+      send_ip_hdr->ip_ttl = 64;
+      send_ip_hdr->ip_p = ip_protocol_icmp;
+      send_ip_hdr->ip_sum = 0;
+      send_ip_hdr->ip_sum = cksum(send_ip_hdr, sizeof(sr_ip_hdr_t));
+      send_ip_hdr->ip_src = iface->ip;
+      send_ip_hdr->ip_dst = ip_hdr->ip_src;
+
+      memcpy(send_eth_hdr->ether_dhost, e_hdr->ether_shost, ETHER_ADDR_LEN);
+      memcpy(send_eth_hdr->ether_shost, iface->addr, ETHER_ADDR_LEN);
+      send_eth_hdr->ether_type = htons(ethertype_ip);
+
+      sr_icmp_t3_hdr_t *icmp_hdr = (sr_icmp_t3_hdr_t * )(sendPacket + minLen);
+      icmp_hdr->icmp_type = 3;
+      icmp_hdr->icmp_code = 3;
+      memcpy(icmp_hdr->data, ip_hdr, ICMP_DATA_SIZE);
+      icmp_hdr->icmp_sum =  cksum(icmp_hdr, sizeof(sr_icmp_t3_hdr_t));
+
+      sr_send_packet(sr, sendPacket, sendLen, iface->name);
+
+    }
+  } else {
+      // to do
+  }
+
 }

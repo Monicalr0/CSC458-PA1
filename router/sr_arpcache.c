@@ -143,7 +143,7 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
     /* Loop through all requests that is until request reaches null */
     while (request) {
         next_request = request->next;
-        handle_arpreq (sr, request);
+        handle_aqpreq(sr, request);
         request = next_request;
     }
 }

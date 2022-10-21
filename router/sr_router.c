@@ -364,9 +364,31 @@ void handle_ip(struct sr_instance *sr,
     /*If no matching found, drop packet and send unreachable*/
     if (!longest_prefix)
     {
-      // TODO: send ICMP unreachable
+      // TODO: send ICMP net unreachable
       return;
     }
-    /*Else, start forwarding packet to next hop
-    First check ARP cache*/
+
+    /*Else, start forwarding packet to next hop */
+    /*First check if address in ARP cache using given function*/
+    struct sr_arpentry *matched_arpcache = sr_arpcache_lookup(&sr->cache, longest_prefix->gw.s_addr);
+
+    //      # When sending packet to next_hop_ip
+    //  entry = arpcache_lookup(next_hop_ip)
+
+    //  if entry:
+    //      use next_hop_ip->mac mapping in entry to send the packet
+    //      free entry
+    //  else:
+    //      req = arpcache_queuereq(next_hop_ip, packet, len)
+    //      handle_arpreq(req)
+    if (matched_arpcache)
+    {
+      /*TODO: send frame to next hop*/
+    }
+    else
+    {
+      /* Not found. Send ARP request up to 5 times, works -> send packet, not -> send ICMP HOST unreachable */
+      struct sr_arpreq *arp_req = sr_arpcache_queuereq(&sr->cache, longest_prefix->gw.s_addr, packet, len, interface);
+      handle_arpreq(sr, arp_req);
+    }
   }

@@ -307,9 +307,9 @@ void handle_ip(struct sr_instance *sr,
     ip_hdr->ip_sum = cksum(ip_hdr, sizeof(sr_ip_hdr_t));
 
     /* Check routing table, perform Longest Prefix Match */
-    printf("Look prefix in routing table - handle ip");
+    printf("Look prefix in routing table - handle ip \n");
     struct sr_rt *longest_prefix = longest_prefix_match(sr, ip_hdr->ip_dst);
-    printf("Returned from longest_prefix_match - handle ip");
+    printf("Returned from longest_prefix_match - handle ip \n");
 
     /*If no matching found, drop packet and send unreachable*/
     if (!longest_prefix)
@@ -499,7 +499,7 @@ struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
     }
     routing_table = routing_table->next;
   }
-  printf("Return matching longest prefix \n");
+  printf("Return matching longest prefix: %s \n", longest_prefix->interface);
   return longest_prefix;
 }
 

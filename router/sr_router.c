@@ -312,13 +312,13 @@ void handle_ip(struct sr_instance *sr,
     printf("Returned from longest_prefix_match - handle ip \n");
 
     /*If no matching found, drop packet and send unreachable*/
-/*     if (!longest_prefix)
+    if (!longest_prefix)
     {
       printf("No match in routing table - handle ip\n");
       send_icmp(sr, packet, iface, 3, 0);
       return;
     }
- */
+
 
     printf("Match found in routing table - handle ip");
 
@@ -482,7 +482,7 @@ void send_icmp(struct sr_instance *sr,
 struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
 {
   struct sr_rt *routing_table = sr->routing_table;
-  struct sr_rt *longest_prefix = NULL;
+  struct sr_rt *longest_entry = NULL;
   int packet_dest_prefix = ip & routing_table->mask.s_addr;
 
   printf("Finding longest matching prefix entry for: \n");
@@ -492,14 +492,14 @@ struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
     if (packet_dest_prefix == (routing_table->dest.s_addr & routing_table->mask.s_addr))
     {
       printf("Matching prefix found \n");
-      if(!longest_prefix || routing_table->mask.s_addr > longest_prefix->mask.s_addr)
+      if(!longest_entry || routing_table->mask.s_addr > longest_entry->mask.s_addr)
       {
         printf("Longest prefix updated \n");
-        longest_prefix = routing_table;
+        longest_entry = routing_table;
       }
     }
     routing_table = routing_table->next;
   }
-  return longest_prefix;
+  return longest_entry;
 }
 

@@ -243,9 +243,9 @@ void handle_ip(struct sr_instance *sr,
     return;
   }
 
-  print("In send ICMP: \n");
+  printf("In send ICMP: \n");
   print_hdr_ip(packet);
-  print("----------------\n");
+  printf("----------------\n");
 
   /* Packet is sent to one of your router’s IP addresses */
   if (is_for_me(sr, ip_hdr))
@@ -481,9 +481,9 @@ void send_icmp(struct sr_instance *sr,
 
   /* Find routing table entry with longest prefix match with the destination IP address,
   such entry is the outgoing interface */
-  print("In send ICMP: \n");
+  printf("In send ICMP: \n");
   print_hdr_ip(packet);
-  print("----------------\n");
+  printf("----------------\n");
 
   struct sr_rt* rt_entry = longest_prefix_match(sr, input_ip_hdr->ip_src);
   if(!rt_entry) {

@@ -480,7 +480,7 @@ void send_icmp(struct sr_instance *sr,
 struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
 {
   struct sr_rt *routing_table = sr->routing_table;
-  struct sr_rt *longest_prefix = NULL;
+  struct sr_rt *longest_prefix = 0;
   int packet_dest_prefix = ip & routing_table->mask.s_addr;
 
   printf("Finding longest matching prefix entry for: \n");

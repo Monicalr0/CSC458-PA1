@@ -309,6 +309,7 @@ void handle_ip(struct sr_instance *sr,
     /* Check routing table, perform Longest Prefix Match */
     printf("Look prefix in routing table - handle ip \n");
     struct sr_rt *longest_prefix = longest_prefix_match(sr, ip_hdr->ip_dst);
+    printf("---------------------------------------------------");
     printf("Returned from longest_prefix_match - handle ip \n");
     printf("---------------------------------------------------");
 

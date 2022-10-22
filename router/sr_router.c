@@ -66,9 +66,6 @@ void sr_handlepacket(struct sr_instance *sr,
   assert(interface);
 
   printf("*** -> Received packet of length %d \n", len);
-  printf("In handlepacket: \n");
-  print_hdrs(packet, len);
-  printf("----------------\n");
 
   /* fill in code here */
   if (len < sizeof(sr_ethernet_hdr_t))
@@ -485,8 +482,8 @@ void send_icmp(struct sr_instance *sr,
 
   /* Find routing table entry with longest prefix match with the destination IP address,
   such entry is the outgoing interface */
-  printf("In send_icmp: \n");
-  print_hdr_ip(packet);
+  printf("In send_icmp, input packet: \n");
+  print_hdr_ip(packet + sizeof(sr_ethernet_hdr_t));
   printf("----------------\n");
 
   struct sr_rt* rt_entry = longest_prefix_match(sr, input_ip_hdr->ip_src);
@@ -526,6 +523,11 @@ void send_icmp(struct sr_instance *sr,
     icmp_hdr->icmp_code = code;
     icmp_hdr->icmp_sum = 0;
     icmp_hdr->icmp_sum = cksum(icmp_hdr, sizeof(sr_icmp_hdr_t));
+
+
+    printf("In send_icmp, icmp type 0 packet: \n");
+    print_hdrs(icmp_packet, icmp_len);
+    printf("----------------\n");
 
 
     /* check the ARP cache for the corresponding MAC address  */
@@ -580,6 +582,10 @@ void send_icmp(struct sr_instance *sr,
     icmp_hdr->icmp_sum = 0;
     memcpy(icmp_hdr->data, input_ip_hdr, ICMP_DATA_SIZE);
     icmp_hdr->icmp_sum = cksum(icmp_hdr, sizeof(sr_icmp_t3_hdr_t));
+
+    printf("In send_icmp, icmp type 3 packet: \n");
+    print_hdrs(icmp_packet, icmp_len);
+    printf("----------------\n");
 
     /* check the ARP cache for the corresponding MAC address  */
     struct sr_arpentry *in_cache = sr_arpcache_lookup(cache, rt_entry->gw.s_addr);

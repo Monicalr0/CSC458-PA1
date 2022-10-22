@@ -40,46 +40,8 @@ void handle_aqpreq(struct sr_instance *sr, struct sr_arpreq *req)
             struct sr_packet *waiting_packet = req->packets;
             while (waiting_packet)
             {
-                sr_ethernet_hdr_t *waiting_ether_hdr = (sr_ethernet_hdr_t *)waiting_packet->buf;
-                sr_ip_hdr_t *waiting_ip_hdr = (sr_ip_hdr_t *)(waiting_packet->buf + sizeof(sr_ethernet_hdr_t));
                 struct sr_if *waiting_iface = sr_get_interface(sr, waiting_packet->iface);
-
-                /* send icmp packets back to the source of waiting packet */
-                int len = sizeof(sr_ethernet_hdr_t) + sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t);
-                uint8_t *icmp_packet = (uint8_t *)malloc(len);
-
-                /* Initialize header for the raw ethernet frame of icmp packet*/
-                sr_ethernet_hdr_t *icmp_ether_hdr = (sr_ethernet_hdr_t *)icmp_packet;
-                /* the source is waiting packet's destination, and the destination is waiting packet's source */
-                memcpy(icmp_ether_hdr->ether_shost, waiting_ether_hdr->ether_dhost, sizeof(uint8_t) * ETHER_ADDR_LEN);
-                memcpy(icmp_ether_hdr->ether_dhost, waiting_ether_hdr->ether_shost, sizeof(uint8_t) * ETHER_ADDR_LEN);
-                icmp_ether_hdr->ether_type = htons(ethertype_ip);
-
-                /* Initialize header for the ip frame of icmp packet*/
-                sr_ip_hdr_t *icmp_ip_hdr = (sr_ip_hdr_t *)(icmp_packet + sizeof(sr_ethernet_hdr_t));
-                memcpy(icmp_ip_hdr, waiting_ip_hdr, sizeof(sr_ip_hdr_t));
-                icmp_ip_hdr->ip_len = htons(sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t));
-                icmp_ip_hdr->ip_ttl = INIT_TTL;
-                icmp_ip_hdr->ip_dst = waiting_ip_hdr->ip_src;
-                icmp_ip_hdr->ip_p = ip_protocol_icmp;
-                icmp_ip_hdr->ip_src = waiting_iface->ip;
-                icmp_ip_hdr->ip_sum = 0;
-                icmp_ip_hdr->ip_sum = cksum(icmp_ip_hdr, sizeof(sr_ip_hdr_t));
-
-                /* Initialize header for the icmp frame of icmp packet*/
-                sr_icmp_t3_hdr_t *icmp_hdr = (sr_icmp_t3_hdr_t *)(icmp_packet + sizeof(sr_ethernet_hdr_t) + sizeof(sr_ip_hdr_t));
-                icmp_hdr->icmp_type = 3;
-                icmp_hdr->icmp_code = 1;
-                icmp_hdr->unused = 0;
-                icmp_hdr->next_mtu = 0;
-                icmp_hdr->icmp_sum = 0;
-                memcpy(icmp_hdr->data, waiting_ip_hdr, ICMP_DATA_SIZE);
-                icmp_hdr->icmp_sum = cksum(icmp_hdr, sizeof(sr_icmp_t3_hdr_t));
-
-                /* Send the created icmp packet*/
-                sr_send_packet(sr, icmp_packet, len, waiting_iface->name);
-                free(icmp_packet);
-
+                send_icmp(sr, waiting_packet->buf, waiting_iface, 3, 1);
                 waiting_packet = waiting_packet->next;
             }
             sr_arpreq_destroy(cache, req);

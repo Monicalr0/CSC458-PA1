@@ -447,7 +447,6 @@ void handle_ip(struct sr_instance *sr,
 /* Send ICMP packet to input packet's source */
 void send_icmp(struct sr_instance *sr,
               uint8_t *packet,
-              unsigned int len,
               struct sr_if *incoming_interface,
               uint8_t type, 
               uint8_t code)

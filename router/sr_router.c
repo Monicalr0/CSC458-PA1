@@ -246,7 +246,7 @@ void handle_ip(struct sr_instance *sr,
   /* Packet is sent to one of your router’s IP addresses */
   if (is_for_me(sr, ip_hdr))
   {
-    printf("Package is not for router\n");
+    printf("Package is NOT FOR router\n");
     /* Packet is ICMP*/
     if (ip_hdr->ip_p == ip_protocol_icmp)
     {
@@ -331,7 +331,7 @@ void handle_ip(struct sr_instance *sr,
     check ARP Cache
     Miss: Send ARP request up to 5 time,
     Hit: send frame to next hope*/
-    printf("Package is not for router\n");
+    printf("Package is FOR router\n");
 
     /*Decrease TTL and recalc checksum*/
     ip_hdr->ip_ttl -= 1;

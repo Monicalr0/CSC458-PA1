@@ -196,22 +196,20 @@ int is_for_me(struct sr_instance *sr, sr_ip_hdr_t *ip_hdr)
   int result = 0;
   struct sr_if *iface = sr->if_list;
 
-  if (iface->ip == ip_hdr->ip_dst)
+  printf("Checking if IP packet matches one of the interfaces of the router \n");
+  printf("Looking for IP [%d] \n", ip_hdr->ip_dst);
+  while (iface)
   {
-    result = 1;
-  }
-  else
-  {
-    while (iface)
+    printf("Found for IP [%d] \n", iface->ipt);
+    if (iface->ip == ip_hdr->ip_dst)
     {
-      if (iface->ip == ip_hdr->ip_dst)
-      {
-        result = 1;
-        break;
-      }
-      iface = iface->next;
+      printf("Found!!");
+      result = 1;
+      break;
     }
+    iface = iface->next;
   }
+
   return result;
 }
 

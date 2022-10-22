@@ -223,6 +223,10 @@ void handle_ip(struct sr_instance *sr,
   assert(packet);
   assert(interface);
 
+  printf("In handle_ip: \n");
+  print_hdr_ip(packet);
+  printf("----------------\n");
+
   struct sr_if *iface = sr_get_interface(sr, interface);                     /* ethernet interface*/
   sr_ip_hdr_t *ip_hdr = (sr_ip_hdr_t *)(packet + sizeof(sr_ethernet_hdr_t)); /* ip header*/
   sr_ethernet_hdr_t *e_hdr = (sr_ethernet_hdr_t *)packet;
@@ -243,9 +247,6 @@ void handle_ip(struct sr_instance *sr,
     return;
   }
 
-  printf("In handle_ip: \n");
-  print_hdr_ip(packet);
-  printf("----------------\n");
 
   /* Packet is sent to one of your router’s IP addresses */
   if (is_for_me(sr, ip_hdr))

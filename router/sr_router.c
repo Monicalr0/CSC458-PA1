@@ -314,15 +314,15 @@ void handle_ip(struct sr_instance *sr,
     printf("---------------------------------------------------\n");
 
     /*If no matching found, drop packet and send unreachable*/
-    if (!longest_prefix)
+/*     if (!longest_prefix)
     {
       printf("No match in routing table - handle ip\n");
       send_icmp(sr, packet, iface, 3, 0);
       return;
     }
+ */
 
-
-    printf("Match found in routing table - handle ip");
+    printf("Match found in routing table - handle ip\n");
 
     /*Else, start forwarding packet to next hop ip*/
     /*First check if address in ARP cache using given function*/

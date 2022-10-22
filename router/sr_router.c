@@ -330,6 +330,8 @@ void handle_ip(struct sr_instance *sr,
     struct sr_arpentry *matched_arpcache = sr_arpcache_lookup(&sr->cache, longest_prefix->gw.s_addr);
     struct sr_if *longest_prefix_inf = sr_get_interface(sr, longest_prefix->interface);
 
+    printf("Checking if address in ARP Cache - handle ip \n");
+
     if (matched_arpcache)
     {
       /*Modify ethernet header's destination & soruce host*/
@@ -354,6 +356,8 @@ void send_icmp(struct sr_instance *sr,
               uint8_t type, 
               uint8_t code)
 {
+  printf("Sending ICMP message \n");
+  
   /* Initialize headers for input packet*/
   struct sr_arpcache *cache = &sr->cache;
   sr_ethernet_hdr_t *input_ether_hdr = (sr_ethernet_hdr_t *)packet;

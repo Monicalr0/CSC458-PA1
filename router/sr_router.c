@@ -243,10 +243,14 @@ void handle_ip(struct sr_instance *sr,
     return;
   }
 
+  print("In send ICMP: \n");
+  print_hdr_ip(packet);
+  print("----------------\n");
+
   /* Packet is sent to one of your router’s IP addresses */
   if (is_for_me(sr, ip_hdr))
   {
-    printf("Package is NOT FOR router\n");
+    printf("Package is FOR router\n");
     /* Packet is ICMP*/
     if (ip_hdr->ip_p == ip_protocol_icmp)
     {
@@ -331,7 +335,7 @@ void handle_ip(struct sr_instance *sr,
     check ARP Cache
     Miss: Send ARP request up to 5 time,
     Hit: send frame to next hope*/
-    printf("Package is FOR router\n");
+    printf("Package is NOT FOR router\n");
 
     /*Decrease TTL and recalc checksum*/
     ip_hdr->ip_ttl -= 1;
@@ -477,7 +481,10 @@ void send_icmp(struct sr_instance *sr,
 
   /* Find routing table entry with longest prefix match with the destination IP address,
   such entry is the outgoing interface */
+  print("In send ICMP: \n");
   print_hdr_ip(packet);
+  print("----------------\n");
+
   struct sr_rt* rt_entry = longest_prefix_match(sr, input_ip_hdr->ip_src);
   if(!rt_entry) {
       fprintf(stderr, "Error: IP has no match in the router's rounting table.\n");

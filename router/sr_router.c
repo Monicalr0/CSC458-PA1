@@ -312,35 +312,35 @@ void handle_ip(struct sr_instance *sr,
     printf("Returned from longest_prefix_match - handle ip \n");
 
     /*If no matching found, drop packet and send unreachable*/
-    if (longest_prefix == NULL)
+    if (longest_prefix)
     {
+      printf("Match found in routing table - handle ip");
+
+      /*Else, start forwarding packet to next hop ip*/
+      /*First check if address in ARP cache using given function*/
+      struct sr_arpentry *matched_arpcache = sr_arpcache_lookup(&sr->cache, longest_prefix->gw.s_addr);
+      struct sr_if *longest_prefix_inf = sr_get_interface(sr, longest_prefix->interface);
+
+      if (matched_arpcache)
+      {
+        /*Modify ethernet header's destination & soruce host*/
+        /*Use next_hop_ip->mac mapping in entry to send the packet*/
+        memcpy(e_hdr->ether_dhost, matched_arpcache->mac, ETHER_ADDR_LEN);
+        memcpy(e_hdr->ether_shost, longest_prefix_inf->addr, ETHER_ADDR_LEN);
+        sr_send_packet(sr, packet, len, longest_prefix_inf->name);
+        free(longest_prefix);
+      }
+      else
+      {
+        /* Not found. Send ARP request up to 5 times, works -> send packet, not -> send ICMP HOST unreachable */
+        struct sr_arpreq *arp_req = sr_arpcache_queuereq(&sr->cache, longest_prefix->gw.s_addr, packet, len, longest_prefix_inf->name);
+        handle_arpreq(sr, arp_req);
+      }
+    }
+    else {
       printf("No match in routing table - handle ip\n");
       send_icmp(sr, packet, iface, 3, 0);
       return;
-    }
-
-
-    printf("Match found in routing table - handle ip");
-
-    /*Else, start forwarding packet to next hop ip*/
-    /*First check if address in ARP cache using given function*/
-    struct sr_arpentry *matched_arpcache = sr_arpcache_lookup(&sr->cache, longest_prefix->gw.s_addr);
-    struct sr_if *longest_prefix_inf = sr_get_interface(sr, longest_prefix->interface);
-
-    if (matched_arpcache)
-    {
-      /*Modify ethernet header's destination & soruce host*/
-      /*Use next_hop_ip->mac mapping in entry to send the packet*/
-      memcpy(e_hdr->ether_dhost, matched_arpcache->mac, ETHER_ADDR_LEN);
-      memcpy(e_hdr->ether_shost, longest_prefix_inf->addr, ETHER_ADDR_LEN);
-      sr_send_packet(sr, packet, len, longest_prefix_inf->name);
-      free(longest_prefix);
-    }
-    else
-    {
-      /* Not found. Send ARP request up to 5 times, works -> send packet, not -> send ICMP HOST unreachable */
-      struct sr_arpreq *arp_req = sr_arpcache_queuereq(&sr->cache, longest_prefix->gw.s_addr, packet, len, longest_prefix_inf->name);
-      handle_arpreq(sr, arp_req);
     }
   }
 }

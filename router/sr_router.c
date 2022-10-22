@@ -505,7 +505,7 @@ void send_icmp(struct sr_instance *sr,
       sr_send_packet(sr, icmp_packet, icmp_len, outgoing_interface->name);
     }
     else {
-      struct sr_arpreq *req = sr_arpcache_queuereq(cache, rt_entry->gw.s_addp, icmp_packet, icmp_len, outgoing_interface->name);
+      struct sr_arpreq *req = sr_arpcache_queuereq(cache, rt_entry->gw.s_addr, icmp_packet, icmp_len, outgoing_interface->name);
       handle_arpreq(sr, req);
     }
     free(icmp_packet);
@@ -558,7 +558,7 @@ void send_icmp(struct sr_instance *sr,
       sr_send_packet(sr, icmp_packet, icmp_len, outgoing_interface->name);
     }
     else {
-      struct sr_arpreq *req = sr_arpcache_queuereq(cache, rt_entry->gw.s_addp, icmp_packet, icmp_len, outgoing_interface->name);
+      struct sr_arpreq *req = sr_arpcache_queuereq(cache, rt_entry->gw.s_addr, icmp_packet, icmp_len, outgoing_interface->name);
       handle_arpreq(sr, req);
     }
     free(icmp_packet);

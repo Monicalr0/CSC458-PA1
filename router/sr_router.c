@@ -337,8 +337,8 @@ void handle_ip(struct sr_instance *sr,
       /*Modify ethernet header's destination & soruce host*/
       /*Use next_hop_ip->mac mapping in entry to send the packet*/
       printf("Address is in ARP Cache - handle ip \n");
-      memcpy(e_hdr->ether_dhost, matched_arpcache->mac, ETHER_ADDR_LEN);
-      memcpy(e_hdr->ether_shost, longest_prefix_inf->addr, ETHER_ADDR_LEN);
+      memcpy(e_hdr->ether_dhost, matched_arpcache->mac, sizeof(unsigned char)* ETHER_ADDR_LEN);
+      memcpy(e_hdr->ether_shost, longest_prefix_inf->addr, sizeof(uint8_t)* ETHER_ADDR_LEN);
       sr_send_packet(sr, packet, len, longest_prefix_inf->name);
       printf("Packet sent to next hop - handle ip \n");
     }

@@ -280,14 +280,14 @@ void handle_ip(struct sr_instance *sr,
         // send echo reply 
         sr_send_packet(sr, packet, len, interface); */
 
-        send_icmp_message(sr, packet, iface, 0, 0);
+        send_icmp(sr, packet, iface, 0, 0);
       }
     }
     else
     { /* if TCP/ UDP send icmp port unreachable 
         otherwise ignore*/
       if ((ip_hdr->ip_p == ip_protocol_tcp) || (ip_hdr->ip_p == ip_protocol_udp)) {
-        send_icmp_message(sr, packet, iface, 3, 3);
+        send_icmp(sr, packet, iface, 3, 3);
       }
       /* int sendLen = minLen + sizeof(sr_icmp_t3_hdr_t);
       uint8_t *sendPacket = (uint8_t *)malloc(sendLen);
@@ -337,7 +337,7 @@ void handle_ip(struct sr_instance *sr,
     if (ip_hdr->ip_ttl == 0)
     {
       printf("TTL reached zero, Stop forwarding.\n");
-      send_icmp_message(sr, packet, iface, 11, 0);
+      send_icmp(sr, packet, iface, 11, 0);
       return;
       /* // int sendLen = minLen + sizeof(sr_icmp_t3_hdr_t);
       // uint8_t *sendPacket = (uint8_t *)malloc(sendLen);
@@ -399,7 +399,7 @@ void handle_ip(struct sr_instance *sr,
     /*If no matching found, drop packet and send unreachable*/
     if (!longest_prefix)
     {
-      send_icmp_message(sr, packet, iface, 3, 0);
+      send_icmp(sr, packet, iface, 3, 0);
 /*       int sendLen = minLen + sizeof(sr_icmp_t3_hdr_t);
       uint8_t *sendPacket = (uint8_t *)malloc(sendLen);
       memset(sendPacket, 0, sendLen);

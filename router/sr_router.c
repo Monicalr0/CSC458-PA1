@@ -243,7 +243,7 @@ void handle_ip(struct sr_instance *sr,
     return;
   }
 
-  printf("In send ICMP: \n");
+  printf("In handle_ip: \n");
   print_hdr_ip(packet);
   printf("----------------\n");
 
@@ -404,7 +404,7 @@ void handle_ip(struct sr_instance *sr,
     /*If no matching found, drop packet and send unreachable*/
     if (!longest_prefix)
     {
-      printf("No match in routing table - handle ip");
+      printf("No match in routing table - handle ip\n");
       send_icmp(sr, packet, iface, 3, 0);
 /*       int sendLen = minLen + sizeof(sr_icmp_t3_hdr_t);
       uint8_t *sendPacket = (uint8_t *)malloc(sendLen);
@@ -481,7 +481,7 @@ void send_icmp(struct sr_instance *sr,
 
   /* Find routing table entry with longest prefix match with the destination IP address,
   such entry is the outgoing interface */
-  printf("In send ICMP: \n");
+  printf("In send_icmp: \n");
   print_hdr_ip(packet);
   printf("----------------\n");
 

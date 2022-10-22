@@ -310,6 +310,7 @@ void handle_ip(struct sr_instance *sr,
     printf("Look prefix in routing table - handle ip \n");
     struct sr_rt *longest_prefix = longest_prefix_match(sr, ip_hdr->ip_dst);
     printf("Returned from longest_prefix_match - handle ip: %s \n", longest_prefix->interface);
+    printf("Match found in routing table - handle ip");
 
     /*If no matching found, drop packet and send unreachable*/
 /*     if (!longest_prefix)
@@ -319,8 +320,6 @@ void handle_ip(struct sr_instance *sr,
       return;
     } */
 
-
-    printf("Match found in routing table - handle ip");
 
     /*Else, start forwarding packet to next hop ip*/
     /*First check if address in ARP cache using given function*/

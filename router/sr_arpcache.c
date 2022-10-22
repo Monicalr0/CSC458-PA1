@@ -61,6 +61,8 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             /* send arp request packets back to the source of waiting packet */
             int len = sizeof(sr_ethernet_hdr_t) + sizeof(sr_arp_hdr_t);
             uint8_t *arp_req_packet = (uint8_t *)malloc(len);
+            unsigned char destination[ETHER_ADDR_LEN];
+            memcpy(destination, 0xff, ETHER_ADDR_LEN);
             
             printf("Initialize Ethernet Header \n");
             /* Set values for arp request packets ethernet header */
@@ -70,7 +72,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             memcpy(arp_req_ether_hdr->ether_shost, waiting_iface->addr, ETHER_ADDR_LEN);
             printf("2 \n");
             /* broadcast */
-            memcpy(arp_req_ether_hdr->ether_dhost, 255, ETHER_ADDR_LEN);
+            memcpy(arp_req_ether_hdr->ether_dhost, destination, ETHER_ADDR_LEN);
             printf("3 \n");
             arp_req_ether_hdr->ether_type = htons(ethertype_arp);
             printf("4 \n");
@@ -87,7 +89,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             memcpy(arp_req_arp_hdr->ar_sha, waiting_iface->addr, ETHER_ADDR_LEN);
             arp_req_arp_hdr->ar_sip = waiting_iface->ip;
             /* Target ip is the source of received request packet */
-            memcpy(arp_req_arp_hdr->ar_tha, 255, ETHER_ADDR_LEN);
+            memcpy(arp_req_arp_hdr->ar_tha, destination, ETHER_ADDR_LEN);
             arp_req_arp_hdr->ar_tip = req->ip;
 
             printf("Send Packet \n");

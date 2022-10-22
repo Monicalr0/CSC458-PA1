@@ -339,7 +339,7 @@ void handle_ip(struct sr_instance *sr,
       printf("TTL reached zero, Stop forwarding.\n");
       send_icmp_message(sr, packet, iface, 11, 0);
       return;
-      // int sendLen = minLen + sizeof(sr_icmp_t3_hdr_t);
+      /* // int sendLen = minLen + sizeof(sr_icmp_t3_hdr_t);
       // uint8_t *sendPacket = (uint8_t *)malloc(sendLen);
       // memset(sendPacket, 0, sendLen);
 
@@ -371,7 +371,7 @@ void handle_ip(struct sr_instance *sr,
 
       // sr_send_packet(sr, sendPacket, sendLen, iface->name);
       // free(sendPacket);
-      // return;
+      // return; */
     }
     /*Recalc checksum, previous checksum is set to 0 when doing sanity check*/
     ip_hdr->ip_sum = cksum(ip_hdr, sizeof(sr_ip_hdr_t));

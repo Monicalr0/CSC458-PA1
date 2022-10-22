@@ -310,9 +310,13 @@ void handle_ip(struct sr_instance *sr,
     printf("Call longest_prefix_match - handle ip \n");
     struct sr_rt *longest_prefix = longest_prefix_match(sr, ip_hdr->ip_dst);
     printf("Returned from longest_prefix_match - handle ip \n");
-    printf("longest_prefix interface: %s \n", longest_prefix->interface);
-    printf("longest_prefix gateway ip:\n");
-    print_addr_ip_int(ntohl(longest_prefix->gw.s_addr));
+
+    if (longest_prefix)
+    {
+      printf("longest_prefix interface: %s \n", longest_prefix->interface);
+      printf("longest_prefix gateway ip:\n");
+      print_addr_ip_int(ntohl(longest_prefix->gw.s_addr));
+    }
 
     /*If no matching found, drop packet and send unreachable*/
     if (!longest_prefix)

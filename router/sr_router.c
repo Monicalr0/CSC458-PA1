@@ -327,7 +327,7 @@ void handle_ip(struct sr_instance *sr,
     }
 
 
-    printf("Match found in routing table - handle ip");
+    printf("Match found in routing table - handle ip\n");
 
     /*Else, start forwarding packet to next hop ip*/
     /*First check if address in ARP cache using given function*/

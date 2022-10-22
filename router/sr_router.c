@@ -480,7 +480,7 @@ void send_icmp(struct sr_instance *sr,
   struct sr_rt* rt_entry = longest_prefix_match(sr, input_ip_hdr->ip_src);
   if(!rt_entry) {
       fprintf(stderr, "Error: IP has no match in the router's rounting table.\n");
-      fprintf(stderr, "%s \n", rt_entry->gw.s_addr);
+      fprintf(stderr, "%d \n", input_ip_hdr->ip_src);
       return;
   }
   struct sr_if *outgoing_interface = sr_get_interface(sr, rt_entry->interface);

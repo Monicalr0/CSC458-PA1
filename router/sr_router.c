@@ -439,7 +439,7 @@ void handle_ip(struct sr_instance *sr,
     {
       /* Not found. Send ARP request up to 5 times, works -> send packet, not -> send ICMP HOST unreachable */
       struct sr_arpreq *arp_req = sr_arpcache_queuereq(&sr->cache, longest_prefix->gw.s_addr, packet, len, longest_prefix_inf->name);
-      handle_aqpreq(sr, arp_req);
+      handle_arpreq(sr, arp_req);
     }
   }
 }

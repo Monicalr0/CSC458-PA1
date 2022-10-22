@@ -29,14 +29,17 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
                     send arp request
                     req->sent = now
                     req->times_sent++ */
+    printf("Handling ARP request \n");
     struct sr_arpcache *cache = &sr->cache;
     time_t now;
     time(&now);
     if (difftime(now, req->sent) >= 1.0)
     {
+        printf("1 second has past \n");
         if ((req->times_sent) >= 5)
         {
             /* send icmp host unreachable to source addr of all pkts waiting on this request */
+            printf("Request has sent more than 5 times \n");
             struct sr_packet *waiting_packet = req->packets;
             while (waiting_packet)
             {
@@ -51,6 +54,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             /*  send arp request
                 req->sent = now
                 req->times_sent++ */
+            printf("Request has sent less than 5 times \n");
             struct sr_packet *waiting_packet = req->packets;
             struct sr_if *waiting_iface = sr_get_interface(sr, waiting_packet->iface);
 

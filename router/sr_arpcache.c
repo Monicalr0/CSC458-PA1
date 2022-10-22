@@ -68,7 +68,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             /* the source address is the address of router's current interface */
             memcpy(arp_req_ether_hdr->ether_shost, waiting_iface->addr, ETHER_ADDR_LEN);
             /* broadcast */
-            memcpy(arp_req_ether_hdr->ether_dhost, 0xff, ETHER_ADDR_LEN);
+            memcpy(arp_req_ether_hdr->ether_dhost, (uint8_t)0xff, ETHER_ADDR_LEN);
             arp_req_ether_hdr->ether_type = htons(ethertype_arp);
 
             printf("Initialize ARP Header \n");
@@ -83,7 +83,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             memcpy(arp_req_arp_hdr->ar_sha, waiting_iface->addr, ETHER_ADDR_LEN);
             arp_req_arp_hdr->ar_sip = waiting_iface->ip;
             /* Target ip is the source of received request packet */
-            memcpy(arp_req_arp_hdr->ar_tha, 0xff, ETHER_ADDR_LEN);
+            memcpy(arp_req_arp_hdr->ar_tha, (uint8_t)0xff, ETHER_ADDR_LEN);
             arp_req_arp_hdr->ar_tip = req->ip;
 
             printf("Send Packet \n");

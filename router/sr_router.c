@@ -400,6 +400,7 @@ void handle_ip(struct sr_instance *sr,
     /*If no matching found, drop packet and send unreachable*/
     if (!longest_prefix)
     {
+      printf("No match in routing table - handle ip");
       send_icmp(sr, packet, iface, 3, 0);
 /*       int sendLen = minLen + sizeof(sr_icmp_t3_hdr_t);
       uint8_t *sendPacket = (uint8_t *)malloc(sendLen);

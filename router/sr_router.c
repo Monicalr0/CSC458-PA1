@@ -437,6 +437,9 @@ void handle_ip(struct sr_instance *sr,
       return;
     }
 
+
+    printf("Match found in routing table - handle ip");
+
     /*Else, start forwarding packet to next hop ip*/
     /*First check if address in ARP cache using given function*/
     struct sr_arpentry *matched_arpcache = sr_arpcache_lookup(&sr->cache, longest_prefix->gw.s_addr);

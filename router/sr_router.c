@@ -497,6 +497,7 @@ struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
     }
     routing_table = routing_table->next;
   }
+  printf("Return matching longest prefix \n");
   return longest_prefix;
 }
 

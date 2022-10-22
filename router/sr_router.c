@@ -484,10 +484,8 @@ struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
 
   printf("Finding longest matching prefix entry for: \n");
   print_addr_ip_int(ntohl(ip));
-  printf("Masked prefix: %d", packet_dest_prefix);
   while (routing_table)
   {
-    printf("Entry prefix: %d", routing_table->dest.s_addr & routing_table->mask.s_addr);
     if (packet_dest_prefix == (routing_table->dest.s_addr & routing_table->mask.s_addr))
     {
       printf("Matching prefix found \n");

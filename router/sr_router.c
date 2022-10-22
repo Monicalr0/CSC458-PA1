@@ -506,7 +506,7 @@ void send_icmp(struct sr_instance *sr,
     }
     else {
       struct sr_arpreq *req = sr_arpcache_queuereq(cache, rt_entry->gw.s_addp, icmp_packet, icmp_len, outgoing_interface->name);
-      handle_arpreq(req, sr);
+      handle_arpreq(sr, req);
     }
     free(icmp_packet);
 	}
@@ -559,7 +559,7 @@ void send_icmp(struct sr_instance *sr,
     }
     else {
       struct sr_arpreq *req = sr_arpcache_queuereq(cache, rt_entry->gw.s_addp, icmp_packet, icmp_len, outgoing_interface->name);
-      handle_arpreq(req, sr);
+      handle_arpreq(sr, req);
     }
     free(icmp_packet);
 	} 
@@ -584,6 +584,6 @@ struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
     }
     routing_table = routing_table->next;
   }
-  return longest_prefix
+  return longest_prefix;
 }
 

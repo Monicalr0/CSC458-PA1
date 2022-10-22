@@ -479,28 +479,3 @@ void send_icmp(struct sr_instance *sr,
     free(icmp_packet);
 	} 
 }
-
-struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
-{
-  struct sr_rt *routing_table = sr->routing_table;
-  struct sr_rt *longest_entry = NULL;
-  int packet_dest_prefix = ip & routing_table->mask.s_addr;
-
-  printf("Finding longest matching prefix entry for: \n");
-  print_addr_ip_int(ntohl(ip));
-  while (routing_table)
-  {
-    if (packet_dest_prefix == (routing_table->dest.s_addr & routing_table->mask.s_addr))
-    {
-      printf("Matching prefix found \n");
-      if(!longest_entry || routing_table->mask.s_addr > longest_entry->mask.s_addr)
-      {
-        printf("Longest prefix updated \n");
-        longest_entry = routing_table;
-      }
-    }
-    routing_table = routing_table->next;
-  }
-  return longest_entry;
-}
-

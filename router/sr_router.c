@@ -308,25 +308,7 @@ void handle_ip(struct sr_instance *sr,
 
     /* Check routing table, perform Longest Prefix Match */
     printf("Look prefix in routing table - handle ip \n");
-    struct sr_rt *routing_table = sr->routing_table;
-    struct sr_rt *longest_prefix = NULL;
-    int packet_dest_prefix = ip_hdr->ip_dst & routing_table->mask.s_addr;
-
-    printf("Finding longest matching prefix entry for: \n");
-    print_addr_ip_int(ntohl(ip_hdr->ip_dst));
-    while (routing_table)
-    {
-      if (packet_dest_prefix == (routing_table->dest.s_addr & routing_table->mask.s_addr))
-      {
-        printf("Matching prefix found \n");
-        if(!longest_prefix || routing_table->mask.s_addr > longest_prefix->mask.s_addr)
-        {
-          printf("Longest prefix updated \n");
-          longest_prefix = routing_table;
-        }
-      }
-      routing_table = routing_table->next;
-    }
+    struct sr_rt *longest_prefix = longest_prefix_match(sr, ip_hdr->ip_dst);
     printf("Returned from longest_prefix_match - handle ip \n");
 
     /*If no matching found, drop packet and send unreachable*/

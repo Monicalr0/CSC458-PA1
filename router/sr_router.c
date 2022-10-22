@@ -67,7 +67,7 @@ void sr_handlepacket(struct sr_instance *sr,
 
   printf("*** -> Received packet of length %d \n", len);
   printf("In handlepacket: \n");
-  print_hdr_ip(packet);
+  print_hdr_eth(packet);
   printf("----------------\n");
 
   /* fill in code here */
@@ -227,7 +227,7 @@ void handle_ip(struct sr_instance *sr,
   assert(interface);
 
   printf("In handle_ip: \n");
-  print_hdr_ip(packet);
+  print_hdr_eth(packet);
   printf("----------------\n");
 
   struct sr_if *iface = sr_get_interface(sr, interface);                     /* ethernet interface*/
@@ -486,7 +486,7 @@ void send_icmp(struct sr_instance *sr,
   /* Find routing table entry with longest prefix match with the destination IP address,
   such entry is the outgoing interface */
   printf("In send_icmp: \n");
-  print_hdr_ip(packet);
+  print_hdr_eth(packet);
   printf("----------------\n");
 
   struct sr_rt* rt_entry = longest_prefix_match(sr, input_ip_hdr->ip_src);

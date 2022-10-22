@@ -115,7 +115,7 @@ void handle_arp(struct sr_instance *sr,
       printf("ARP packet is not targeting this interface\n");
       return;
     }
-    printf("ARP packet is requesting");
+    printf("ARP packet is requesting \n");
     /* Send reply packet containing information of the current interface to the sender of ARP packet*/
     uint8_t *reply_packet = (uint8_t *)malloc(len);
 
@@ -149,7 +149,7 @@ void handle_arp(struct sr_instance *sr,
   /* ARP packet is a reply with information of the sender to the current interface */
   else if (arp_op_reply == ntohs(received_arp_hdr->ar_op))
   {
-    printf("ARP packet is replying");
+    printf("ARP packet is replying \n");
     /* The implemented algorithm is from line 39-47 from sr_arpache.h:
 
     The ARP reply processing code should move entries from the ARP request
@@ -205,7 +205,7 @@ int is_for_me(struct sr_instance *sr, sr_ip_hdr_t *ip_hdr)
     print_addr_ip_int(ntohl(iface->ip));
     if (iface->ip == ip_hdr->ip_dst)
     {
-      printf("Found!!");
+      printf("Found!! \n");
       result = 1;
       break;
     }
@@ -274,7 +274,7 @@ void handle_ip(struct sr_instance *sr,
       /* ICMP echo request -> Send ICMP echo reply */
       if (icmp_hdr->icmp_type == 8)
       {
-        printf("Packet is echo request!!");
+        printf("Packet is echo request!! \n");
         send_icmp(sr, packet, iface, 0, 0);
       }
     }
@@ -310,24 +310,20 @@ void handle_ip(struct sr_instance *sr,
     printf("Call longest_prefix_match - handle ip \n");
     struct sr_rt *longest_prefix = longest_prefix_match(sr, ip_hdr->ip_dst);
     printf("Returned from longest_prefix_match - handle ip \n");
-
-    if (longest_prefix)
-    {
-      printf("longest_prefix interface: %s \n", longest_prefix->interface);
-      printf("longest_prefix gateway ip:\n");
-      print_addr_ip_int(ntohl(longest_prefix->gw.s_addr));
-    }
+/*     printf("longest_prefix interface: %s \n", longest_prefix->interface);
+    printf("longest_prefix gateway ip:\n");
+    print_addr_ip_int(ntohl(longest_prefix->gw.s_addr)); */
 
     /*If no matching found, drop packet and send unreachable*/
-    else
+    if (!longest_prefix)
     {
-      printf("No match in routing table - handle ip\n");
+      printf("No match in routing table - handle ip \n");
       send_icmp(sr, packet, iface, 3, 0);
       return;
     }
 
 
-    printf("Match found in routing table - handle ip\n");
+    printf("Match found in routing table - handle ip \n");
 
     /*Else, start forwarding packet to next hop ip*/
     /*First check if address in ARP cache using given function*/

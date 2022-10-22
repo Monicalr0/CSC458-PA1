@@ -63,7 +63,6 @@ void handle_arp(struct sr_instance* , uint8_t * , unsigned int , char* );
 void handle_ip(struct sr_instance* , uint8_t * , unsigned int , char* );
 extern void send_icmp(struct sr_instance* , uint8_t * , struct sr_if* , uint8_t , uint8_t );
 
-struct sr_rt* longest_prefix_match(struct sr_instance*, uint32_t );
 
 /* -- sr_if.c -- */
 void sr_add_interface(struct sr_instance* , const char* );

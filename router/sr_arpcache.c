@@ -65,15 +65,11 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             printf("Initialize Ethernet Header \n");
             /* Set values for arp request packets ethernet header */
             sr_ethernet_hdr_t *arp_req_ether_hdr = (sr_ethernet_hdr_t *)(arp_req_packet);
-            printf("1 \n");
             /* the source address is the address of router's current interface */
             memcpy(arp_req_ether_hdr->ether_shost, waiting_iface->addr, ETHER_ADDR_LEN);
-            printf("2 \n");
             /* broadcast */
             memset(arp_req_ether_hdr->ether_dhost, 0xff, ETHER_ADDR_LEN);
-            printf("3 \n");
             arp_req_ether_hdr->ether_type = htons(ethertype_arp);
-            printf("4 \n");
 
             printf("Initialize ARP Header \n");
             /* Set values for ARP header */

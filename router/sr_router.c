@@ -66,6 +66,9 @@ void sr_handlepacket(struct sr_instance *sr,
   assert(interface);
 
   printf("*** -> Received packet of length %d \n", len);
+  printf("In handlepacket: \n");
+  print_hdr_ip(packet);
+  printf("----------------\n");
 
   /* fill in code here */
   if (len < sizeof(sr_ethernet_hdr_t))

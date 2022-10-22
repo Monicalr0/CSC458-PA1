@@ -246,6 +246,7 @@ void handle_ip(struct sr_instance *sr,
   /* Packet is sent to one of your router’s IP addresses */
   if (is_for_me(sr, ip_hdr))
   {
+    printf("Package is not for router\n");
     /* Packet is ICMP*/
     if (ip_hdr->ip_p == ip_protocol_icmp)
     {
@@ -470,11 +471,11 @@ void send_icmp(struct sr_instance *sr,
   sr_ethernet_hdr_t *input_ether_hdr = (sr_ethernet_hdr_t *)packet;
   sr_ip_hdr_t *input_ip_hdr = (sr_ip_hdr_t *)(packet + sizeof(sr_ethernet_hdr_t));
 
-  /* Find rounding table entry with longest prefix match with the destination IP address,
+  /* Find routing table entry with longest prefix match with the destination IP address,
   such entry is the outgoing interface */
   struct sr_rt* rt_entry = longest_prefix_match(sr, input_ip_hdr->ip_src);
   if(!rt_entry) {
-      fprintf(stderr, "Error: IP has no match in the router's rounding table.\n");
+      fprintf(stderr, "Error: IP has no match in the router's rounting table.\n");
       return;
   }
   struct sr_if *outgoing_interface = sr_get_interface(sr, rt_entry->interface);
@@ -581,7 +582,6 @@ void send_icmp(struct sr_instance *sr,
 struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
 {
   struct sr_rt *routing_table = sr->routing_table;
-  int max_len = 0;
   struct sr_rt *longest_prefix = NULL;
   int packet_dest_prefix = ip & routing_table->mask.s_addr;
 
@@ -589,9 +589,8 @@ struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
   {
     if (packet_dest_prefix == (routing_table->dest.s_addr && routing_table->mask.s_addr))
     {
-      if (packet_dest_prefix > max_len)
+      if(!longest_prefix || routing_entry->mask.s_addr > longest_prefix->mask.s_addr)
       {
-        max_len = packet_dest_prefix;
         longest_prefix = routing_table;
       }
     }

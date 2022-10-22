@@ -32,7 +32,7 @@ void handle_aqpreq(struct sr_instance *sr, struct sr_arpreq *req)
     struct sr_arpcache *cache = &sr->cache;
     time_t now;
     time(&now);
-    if (difftime(now, req->sent) > 1.0)
+    if (difftime(now, req->sent) >= 1.0)
     {
         if ((req->times_sent) >= 5)
         {

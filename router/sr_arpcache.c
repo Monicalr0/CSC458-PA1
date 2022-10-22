@@ -35,7 +35,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
     time(&now);
     if (difftime(now, req->sent) >= 1.0)
     {
-        printf("1 second has past \n");
+        printf("1 second has passed \n");
         if ((req->times_sent) >= 5)
         {
             /* send icmp host unreachable to source addr of all pkts waiting on this request */
@@ -61,7 +61,8 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             /* send arp request packets back to the source of waiting packet */
             int len = sizeof(sr_ethernet_hdr_t) + sizeof(sr_arp_hdr_t);
             uint8_t *arp_req_packet = (uint8_t *)malloc(len);
-
+            
+            printf("Initialize Ethernet Header \n");
             /* Set values for arp request packets ethernet header */
             sr_ethernet_hdr_t *arp_req_ether_hdr = (sr_ethernet_hdr_t *)(arp_req_packet);
             /* the source address is the address of router's current interface */
@@ -70,6 +71,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             memcpy(arp_req_ether_hdr->ether_dhost, (uint8_t *)0xff, sizeof(uint8_t) * ETHER_ADDR_LEN);
             arp_req_ether_hdr->ether_type = htons(ethertype_arp);
 
+            printf("Initialize ARP Header \n");
             /* Set values for ARP header */
             sr_arp_hdr_t *arp_req_arp_hdr = (sr_arp_hdr_t *)(arp_req_packet + sizeof(sr_ethernet_hdr_t));
             arp_req_arp_hdr->ar_hrd = htons(arp_hrd_ethernet);
@@ -84,6 +86,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             memcpy(arp_req_arp_hdr->ar_tha, (uint8_t *)0xff, ETHER_ADDR_LEN);
             arp_req_arp_hdr->ar_tip = req->ip;
 
+            printf("Send Packet \n");
             /* Send the arp request packet and free the malloc space */
             sr_send_packet(sr, arp_req_packet, len, waiting_iface->name);
             free(arp_req_packet);

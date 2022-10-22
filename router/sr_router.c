@@ -312,7 +312,7 @@ void handle_ip(struct sr_instance *sr,
     printf("Returned from longest_prefix_match - handle ip: %s \n", longest_prefix->interface);
 
     /*If no matching found, drop packet and send unreachable*/
-    if (longest_prefix)
+    if (!longest_prefix)
     {
       printf("No match in routing table - handle ip\n");
       send_icmp(sr, packet, iface, 3, 0);

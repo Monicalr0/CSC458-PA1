@@ -492,10 +492,15 @@ struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
   {
     if (packet_dest_prefix == (routing_table->dest.s_addr & routing_table->mask.s_addr))
     {
-      printf("Matching prefix found \n");
-      if(!longest_entry && routing_table->mask.s_addr > longest_entry->mask.s_addr)
+      if (!longest_entry)
       {
-        printf("Longest prefix entry updated \n");
+        printf("Matching prefix found \n");
+        longest_entry = routing_table;
+      }
+
+      else if (longest_entry && (routing_table->mask.s_addr > longest_entry->mask.s_addr))
+      {
+        printf("Longest prefix entry updated to longer value\n");
         longest_entry = routing_table;
       }
     }

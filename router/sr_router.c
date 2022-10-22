@@ -493,9 +493,9 @@ struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
     if (packet_dest_prefix == (routing_table->dest.s_addr & routing_table->mask.s_addr))
     {
       printf("Matching prefix found \n");
-      if(!longest_entry || routing_table->mask.s_addr > longest_entry->mask.s_addr)
+      if(!longest_entry && routing_table->mask.s_addr > longest_entry->mask.s_addr)
       {
-        printf("Longest prefix updated \n");
+        printf("Longest prefix entry updated \n");
         longest_entry = routing_table;
       }
     }

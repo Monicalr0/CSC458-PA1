@@ -607,7 +607,7 @@ struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
   struct sr_rt *longest_prefix = NULL;
   int packet_dest_prefix = ip & routing_table->mask.s_addr;
 
-  printf("Finding longest prefix entry in routing table \n");
+  printf("Finding longest matching prefix entry for [%d] in routing table \n", ip);
   while (routing_table)
   {
     if (packet_dest_prefix == (routing_table->dest.s_addr && routing_table->mask.s_addr))

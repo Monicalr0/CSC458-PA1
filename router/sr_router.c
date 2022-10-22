@@ -479,25 +479,21 @@ void send_icmp(struct sr_instance *sr,
 
 struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
 {
-  struct sr_rt *routing_table = sr->routing_table;
-  struct sr_rt *longest_prefix = 0;
-  int packet_dest_prefix = ip & routing_table->mask.s_addr;
-
-  printf("Finding longest matching prefix entry for: \n");
-  print_addr_ip_int(ntohl(ip));
-  while (routing_table)
-  {
-    if (packet_dest_prefix == (routing_table->dest.s_addr & routing_table->mask.s_addr))
-    {
-      printf("Matching prefix found \n");
-      if(!longest_prefix || routing_table->mask.s_addr > longest_prefix->mask.s_addr)
-      {
-        printf("Longest prefix updated \n");
-        longest_prefix = routing_table;
-      }
+    struct sr_rt * routing_table = sr->routing_table;
+    int len = 0; 
+    struct sr_rt* rt_walker = 0;
+    struct sr_rt* longest_prefix = 0;
+    rt_walker = routing_table;
+    while (rt_walker) {
+        /* Compare the bitwise AND of target and the subnet mask with the bitwise AND of routing table entry and the subnet mask */
+        if ((ip & rt_walker->mask.s_addr) == (rt_walker->dest.s_addr & rt_walker->mask.s_addr)) {
+            if ((ip & rt_walker->mask.s_addr) > len){
+                len = ip & rt_walker->mask.s_addr;
+                longest_prefix = rt_walker;
+            }
+        }
+        rt_walker = rt_walker->next; 
     }
-    routing_table = routing_table->next;
-  }
-  return longest_prefix;
+    return longest_prefix;
 }
 

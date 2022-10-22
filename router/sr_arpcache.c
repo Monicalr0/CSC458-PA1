@@ -16,7 +16,7 @@
     For every second the functions sends ARP request until it has been sent 5 times.
     Then, send ICMP host unreachable back to all packets waiting on this ARP request
 */
-void handle_aqpreq(struct sr_instance *sr, struct sr_arpreq *req)
+void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
 {
     /*  The implemented algorithm is from line 26-35 from sr_arpache.h:
 

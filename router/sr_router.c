@@ -202,7 +202,7 @@ int is_for_me(struct sr_instance *sr, sr_ip_hdr_t *ip_hdr)
   while (iface)
   {
     printf("Found for IP:\n");
-    print_addr_ip_int(ntohl(ipface->ip));
+    print_addr_ip_int(ntohl(iface->ip));
     if (iface->ip == ip_hdr->ip_dst)
     {
       printf("Found!!");

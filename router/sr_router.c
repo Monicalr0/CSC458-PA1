@@ -312,12 +312,12 @@ void handle_ip(struct sr_instance *sr,
     printf("Returned from longest_prefix_match - handle ip: %s \n", longest_prefix->interface);
 
     /*If no matching found, drop packet and send unreachable*/
-    if (longest_prefix == NULL)
+/*     if (!longest_prefix)
     {
       printf("No match in routing table - handle ip\n");
       send_icmp(sr, packet, iface, 3, 0);
       return;
-    }
+    } */
 
 
     printf("Match found in routing table - handle ip");
@@ -364,10 +364,10 @@ void send_icmp(struct sr_instance *sr,
   printf("----------------\n");
 
   struct sr_rt* rt_entry = longest_prefix_match(sr, input_ip_hdr->ip_src);
-  if(!rt_entry) {
+/*   if(!rt_entry) {
       fprintf(stderr, "Error: IP has no match in the router's rounting table.\n");
       return;
-  }
+  } */
   struct sr_if *outgoing_interface = sr_get_interface(sr, rt_entry->interface);
 
   /* Echo reply */

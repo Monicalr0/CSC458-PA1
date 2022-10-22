@@ -197,10 +197,12 @@ int is_for_me(struct sr_instance *sr, sr_ip_hdr_t *ip_hdr)
   struct sr_if *iface = sr->if_list;
 
   printf("Checking if IP packet matches one of the interfaces of the router \n");
-  printf("Looking for IP [%d] \n", ip_hdr->ip_dst);
+  printf("Looking for IP:\n");
+  print_addr_ip_int(ntohl(ip_hdr->ip_dst));
   while (iface)
   {
-    printf("Found for IP [%d] \n", iface->ip);
+    printf("Found for IP:\n");
+    print_addr_ip_int(ntohl(ipface->ip));
     if (iface->ip == ip_hdr->ip_dst)
     {
       printf("Found!!");
@@ -480,7 +482,8 @@ struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
   struct sr_rt *longest_prefix = NULL;
   int packet_dest_prefix = ip & routing_table->mask.s_addr;
 
-  printf("Finding longest matching prefix entry for [%d] in routing table \n", ip);
+  printf("Finding longest matching prefix entry for: \n");
+  print_addr_ip_int(ntohl(ip));
   while (routing_table)
   {
     if (packet_dest_prefix == (routing_table->dest.s_addr && routing_table->mask.s_addr))

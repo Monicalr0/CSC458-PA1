@@ -243,8 +243,10 @@ void handle_ip(struct sr_instance *sr,
     return;
   }
 
+  /* Packet is sent to one of your router’s IP addresses */
   if (is_for_me(sr, ip_hdr))
   {
+    /* Packet is ICMP*/
     if (ip_hdr->ip_p == ip_protocol_icmp)
     {
       sr_icmp_hdr_t *icmp_hdr = (sr_icmp_hdr_t *)(packet + minLen);
@@ -262,26 +264,32 @@ void handle_ip(struct sr_instance *sr,
         return;
       }
 
+      /* ICMP echo request -> Send ICMP echo reply */
       if (icmp_hdr->icmp_type == 8)
-      { /* ICMP request */
-        ip_hdr->ip_dst = ip_hdr->ip_src;
+      {
+      /*ip_hdr->ip_dst = ip_hdr->ip_src;
         ip_hdr->ip_src = iface->ip;
         ip_hdr->ip_sum = cksum(ip_hdr, sizeof(sr_ip_hdr_t));
 
-        icmp_hdr->icmp_type = 0; /* echo reply */
+        icmp_hdr->icmp_type = 0; // echo reply
         icmp_hdr->icmp_sum = cksum(icmp_hdr, len - minLen);
 
         memcpy(e_hdr->ether_dhost, e_hdr->ether_shost, ETHER_ADDR_LEN);
         memcpy(e_hdr->ether_shost, iface->addr, ETHER_ADDR_LEN);
 
-        /*send echo reply*/
-        sr_send_packet(sr, packet, len, interface);
+        // send echo reply 
+        sr_send_packet(sr, packet, len, interface); */
+
+        send_icmp_message(sr, packet, iface, 0, 0);
       }
     }
     else
-    { /* TCP/ UDP
-       send icmp port unreachable */
-      int sendLen = minLen + sizeof(sr_icmp_t3_hdr_t);
+    { /* if TCP/ UDP send icmp port unreachable 
+        otherwise ignore*/
+      if ((ip_hdr->ip_p == ip_protocol_tcp) || (ip_hdr->ip_p == ip_protocol_udp)) {
+        send_icmp_message(sr, packet, iface, 3, 3);
+      }
+      /* int sendLen = minLen + sizeof(sr_icmp_t3_hdr_t);
       uint8_t *sendPacket = (uint8_t *)malloc(sendLen);
       memset(sendPacket, 0, sendLen);
 
@@ -312,7 +320,7 @@ void handle_ip(struct sr_instance *sr,
       icmp_hdr->icmp_sum = cksum(icmp_hdr, sizeof(sr_icmp_t3_hdr_t));
 
       sr_send_packet(sr, sendPacket, sendLen, iface->name);
-      free(sendPacket);
+      free(sendPacket); */
     }
   }
   else
@@ -329,44 +337,49 @@ void handle_ip(struct sr_instance *sr,
     if (ip_hdr->ip_ttl == 0)
     {
       printf("TTL reached zero, Stop forwarding.\n");
-      int sendLen = minLen + sizeof(sr_icmp_t3_hdr_t);
-      uint8_t *sendPacket = (uint8_t *)malloc(sendLen);
-      memset(sendPacket, 0, sendLen);
-
-      sr_ip_hdr_t *send_ip_hdr = (sr_ip_hdr_t *)(sendPacket + sizeof(sr_ethernet_hdr_t));
-      sr_ethernet_hdr_t *send_eth_hdr = (sr_ethernet_hdr_t *)sendPacket;
-
-      send_ip_hdr->ip_hl = ip_hdr->ip_hl;
-      send_ip_hdr->ip_v = ip_hdr->ip_v;
-      send_ip_hdr->ip_tos = ip_hdr->ip_tos;
-      send_ip_hdr->ip_len = htons(sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t));
-      send_ip_hdr->ip_id = ip_hdr->ip_id;
-      send_ip_hdr->ip_off = ip_hdr->ip_off;
-      send_ip_hdr->ip_ttl = 64;
-      send_ip_hdr->ip_p = ip_protocol_icmp;
-      send_ip_hdr->ip_sum = 0;
-      send_ip_hdr->ip_sum = cksum(send_ip_hdr, sizeof(sr_ip_hdr_t));
-      send_ip_hdr->ip_src = iface->ip;
-      send_ip_hdr->ip_dst = ip_hdr->ip_src;
-
-      memcpy(send_eth_hdr->ether_dhost, e_hdr->ether_shost, ETHER_ADDR_LEN);
-      memcpy(send_eth_hdr->ether_shost, iface->addr, ETHER_ADDR_LEN);
-      send_eth_hdr->ether_type = htons(ethertype_ip);
-
-      sr_icmp_t3_hdr_t *icmp_hdr = (sr_icmp_t3_hdr_t *)(sendPacket + minLen);
-      icmp_hdr->icmp_type = 11;
-      icmp_hdr->icmp_code = 0;
-      memcpy(icmp_hdr->data, ip_hdr, ICMP_DATA_SIZE);
-      icmp_hdr->icmp_sum = cksum(icmp_hdr, sizeof(sr_icmp_t3_hdr_t));
-
-      sr_send_packet(sr, sendPacket, sendLen, iface->name);
-      free(sendPacket);
+      send_icmp_message(sr, packet, iface, 11, 0);
       return;
+      // int sendLen = minLen + sizeof(sr_icmp_t3_hdr_t);
+      // uint8_t *sendPacket = (uint8_t *)malloc(sendLen);
+      // memset(sendPacket, 0, sendLen);
+
+      // sr_ip_hdr_t *send_ip_hdr = (sr_ip_hdr_t *)(sendPacket + sizeof(sr_ethernet_hdr_t));
+      // sr_ethernet_hdr_t *send_eth_hdr = (sr_ethernet_hdr_t *)sendPacket;
+
+      // send_ip_hdr->ip_hl = ip_hdr->ip_hl;
+      // send_ip_hdr->ip_v = ip_hdr->ip_v;
+      // send_ip_hdr->ip_tos = ip_hdr->ip_tos;
+      // send_ip_hdr->ip_len = htons(sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t));
+      // send_ip_hdr->ip_id = ip_hdr->ip_id;
+      // send_ip_hdr->ip_off = ip_hdr->ip_off;
+      // send_ip_hdr->ip_ttl = 64;
+      // send_ip_hdr->ip_p = ip_protocol_icmp;
+      // send_ip_hdr->ip_sum = 0;
+      // send_ip_hdr->ip_sum = cksum(send_ip_hdr, sizeof(sr_ip_hdr_t));
+      // send_ip_hdr->ip_src = iface->ip;
+      // send_ip_hdr->ip_dst = ip_hdr->ip_src;
+
+      // memcpy(send_eth_hdr->ether_dhost, e_hdr->ether_shost, ETHER_ADDR_LEN);
+      // memcpy(send_eth_hdr->ether_shost, iface->addr, ETHER_ADDR_LEN);
+      // send_eth_hdr->ether_type = htons(ethertype_ip);
+
+      // sr_icmp_t3_hdr_t *icmp_hdr = (sr_icmp_t3_hdr_t *)(sendPacket + minLen);
+      // icmp_hdr->icmp_type = 11;
+      // icmp_hdr->icmp_code = 0;
+      // memcpy(icmp_hdr->data, ip_hdr, ICMP_DATA_SIZE);
+      // icmp_hdr->icmp_sum = cksum(icmp_hdr, sizeof(sr_icmp_t3_hdr_t));
+
+      // sr_send_packet(sr, sendPacket, sendLen, iface->name);
+      // free(sendPacket);
+      // return;
     }
     /*Recalc checksum, previous checksum is set to 0 when doing sanity check*/
     ip_hdr->ip_sum = cksum(ip_hdr, sizeof(sr_ip_hdr_t));
 
-    /*Check routing table, perform Longest Prefix Match*/
+    /* Check routing table, perform Longest Prefix Match */
+    struct sr_rt *longest_prefix = longest_prefix_match(sr, ip_hdr->ip_dst);
+
+  /* 
     struct sr_rt *routing_table = sr->routing_table;
     int max_len = 0;
     struct sr_rt *longest_prefix = NULL;
@@ -381,43 +394,44 @@ void handle_ip(struct sr_instance *sr,
           longest_prefix = routing_table;
         }
       }
-    }
+    } */
 
     /*If no matching found, drop packet and send unreachable*/
     if (!longest_prefix)
     {
-      int sendLen = minLen + sizeof(sr_icmp_t3_hdr_t);
-      uint8_t *sendPacket = (uint8_t *)malloc(sendLen);
-      memset(sendPacket, 0, sendLen);
+      send_icmp_message(sr, packet, iface, 3, 0);
+      // int sendLen = minLen + sizeof(sr_icmp_t3_hdr_t);
+      // uint8_t *sendPacket = (uint8_t *)malloc(sendLen);
+      // memset(sendPacket, 0, sendLen);
 
-      sr_ip_hdr_t *send_ip_hdr = (sr_ip_hdr_t *)(sendPacket + sizeof(sr_ethernet_hdr_t));
-      sr_ethernet_hdr_t *send_eth_hdr = (sr_ethernet_hdr_t *)sendPacket;
+      // sr_ip_hdr_t *send_ip_hdr = (sr_ip_hdr_t *)(sendPacket + sizeof(sr_ethernet_hdr_t));
+      // sr_ethernet_hdr_t *send_eth_hdr = (sr_ethernet_hdr_t *)sendPacket;
 
-      send_ip_hdr->ip_hl = ip_hdr->ip_hl;
-      send_ip_hdr->ip_v = ip_hdr->ip_v;
-      send_ip_hdr->ip_tos = ip_hdr->ip_tos;
-      send_ip_hdr->ip_len = htons(sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t));
-      send_ip_hdr->ip_id = ip_hdr->ip_id;
-      send_ip_hdr->ip_off = ip_hdr->ip_off;
-      send_ip_hdr->ip_ttl = 64;
-      send_ip_hdr->ip_p = ip_protocol_icmp;
-      send_ip_hdr->ip_sum = 0;
-      send_ip_hdr->ip_sum = cksum(send_ip_hdr, sizeof(sr_ip_hdr_t));
-      send_ip_hdr->ip_src = iface->ip;
-      send_ip_hdr->ip_dst = ip_hdr->ip_src;
+      // send_ip_hdr->ip_hl = ip_hdr->ip_hl;
+      // send_ip_hdr->ip_v = ip_hdr->ip_v;
+      // send_ip_hdr->ip_tos = ip_hdr->ip_tos;
+      // send_ip_hdr->ip_len = htons(sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t));
+      // send_ip_hdr->ip_id = ip_hdr->ip_id;
+      // send_ip_hdr->ip_off = ip_hdr->ip_off;
+      // send_ip_hdr->ip_ttl = 64;
+      // send_ip_hdr->ip_p = ip_protocol_icmp;
+      // send_ip_hdr->ip_sum = 0;
+      // send_ip_hdr->ip_sum = cksum(send_ip_hdr, sizeof(sr_ip_hdr_t));
+      // send_ip_hdr->ip_src = iface->ip;
+      // send_ip_hdr->ip_dst = ip_hdr->ip_src;
 
-      memcpy(send_eth_hdr->ether_dhost, e_hdr->ether_shost, ETHER_ADDR_LEN);
-      memcpy(send_eth_hdr->ether_shost, iface->addr, ETHER_ADDR_LEN);
-      send_eth_hdr->ether_type = htons(ethertype_ip);
+      // memcpy(send_eth_hdr->ether_dhost, e_hdr->ether_shost, ETHER_ADDR_LEN);
+      // memcpy(send_eth_hdr->ether_shost, iface->addr, ETHER_ADDR_LEN);
+      // send_eth_hdr->ether_type = htons(ethertype_ip);
 
-      sr_icmp_t3_hdr_t *icmp_hdr = (sr_icmp_t3_hdr_t *)(sendPacket + minLen);
-      icmp_hdr->icmp_type = 3;
-      icmp_hdr->icmp_code = 0;
-      memcpy(icmp_hdr->data, ip_hdr, ICMP_DATA_SIZE);
-      icmp_hdr->icmp_sum = cksum(icmp_hdr, sizeof(sr_icmp_t3_hdr_t));
+      // sr_icmp_t3_hdr_t *icmp_hdr = (sr_icmp_t3_hdr_t *)(sendPacket + minLen);
+      // icmp_hdr->icmp_type = 3;
+      // icmp_hdr->icmp_code = 0;
+      // memcpy(icmp_hdr->data, ip_hdr, ICMP_DATA_SIZE);
+      // icmp_hdr->icmp_sum = cksum(icmp_hdr, sizeof(sr_icmp_t3_hdr_t));
 
-      sr_send_packet(sr, sendPacket, sendLen, iface->name);
-      free(sendPacket);
+      // sr_send_packet(sr, sendPacket, sendLen, iface->name);
+      // free(sendPacket);
       return;
     }
 

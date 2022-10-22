@@ -200,7 +200,7 @@ int is_for_me(struct sr_instance *sr, sr_ip_hdr_t *ip_hdr)
   printf("Looking for IP [%d] \n", ip_hdr->ip_dst);
   while (iface)
   {
-    printf("Found for IP [%d] \n", iface->ipt);
+    printf("Found for IP [%d] \n", iface->ip);
     if (iface->ip == ip_hdr->ip_dst)
     {
       printf("Found!!");

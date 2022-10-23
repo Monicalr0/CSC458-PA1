@@ -284,9 +284,9 @@ void handle_ip(struct sr_instance *sr,
         otherwise ignore*/
       if ((ip_hdr->ip_p == ip_protocol_tcp) || (ip_hdr->ip_p == ip_protocol_udp))
       {
-        send_icmp(sr, packet, iface, 3, 3);
-      }
+      send_icmp(sr, packet, iface, 3, 3);
     }
+  }
   }
   else
   {

@@ -150,7 +150,7 @@ void handle_arp(struct sr_instance *sr,
   /* ARP packet is a reply with information of the sender to the current interface */
   else if (arp_op_reply == ntohs(received_arp_hdr->ar_op))
   {
-    printf("ARP packet is replying \n");
+    printf("ARP packet is reply from sent request\n");
     /* The implemented algorithm is from line 39-47 from sr_arpache.h:
 
     The ARP reply processing code should move entries from the ARP request
@@ -184,7 +184,7 @@ void handle_arp(struct sr_instance *sr,
         memcpy(waiting_ether_hdr->ether_dhost, received_arp_hdr->ar_sha, ETHER_ADDR_LEN);
 
         /* Send the waiting packet to the sender and set to the next packet until NULL*/
-        sr_send_packet(sr, waiting_packet->buf, waiting_packet->len, interface);
+        sr_send_packet(sr, waiting_packet->buf, waiting_packet->len, waiting_packet->iface);
         printf("Sent waiting packet to the sender\n");
         waiting_packet = waiting_packet->next;
       }

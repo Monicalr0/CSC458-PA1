@@ -115,7 +115,7 @@ void handle_arp(struct sr_instance *sr,
       printf("ARP packet is not targeting this interface\n");
       return;
     }
-    printf("ARP packet is requesting \n");
+    printf("ARP packet is requesting for reply\n");
     /* Send reply packet containing information of the current interface to the sender of ARP packet*/
     uint8_t *reply_packet = (uint8_t *)malloc(len);
 
@@ -162,7 +162,7 @@ void handle_arp(struct sr_instance *sr,
       send all packets on the req->packets linked list
       arpreq_destroy(req) */
 
-    struct sr_arpcache *cache = &(sr->cache);
+    struct sr_arpcache *cache = &sr->cache;
     unsigned char *mac = received_arp_hdr->ar_sha;
     uint32_t ip = received_arp_hdr->ar_sip;
     struct sr_arpreq *req = sr_arpcache_insert(cache, mac, ip);

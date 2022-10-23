@@ -292,7 +292,6 @@ void handle_ip(struct sr_instance *sr,
       send_icmp(sr, packet, iface, 3, 3);
     }
   }
-  }
   else
   {
     /*For Elseplace

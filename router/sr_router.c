@@ -142,6 +142,7 @@ void handle_arp(struct sr_instance *sr,
     reply_arp_hdr->ar_tip = received_arp_hdr->ar_sip;
 
     /* Send the reply packet to the sender and free the malloc space */
+    printf("Reply has been sent to the ARP request\n");
     sr_send_packet(sr, reply_packet, len, interface);
     free(reply_packet);
   }
@@ -161,7 +162,7 @@ void handle_arp(struct sr_instance *sr,
     if req:
       send all packets on the req->packets linked list
       arpreq_destroy(req) */
-
+    
     struct sr_arpcache *cache = &sr->cache;
     unsigned char *mac = received_arp_hdr->ar_sha;
     uint32_t ip = received_arp_hdr->ar_sip;
@@ -170,6 +171,7 @@ void handle_arp(struct sr_instance *sr,
     /* If succesfully inserted to the router's cache*/
     if (req)
     {
+      printf("Reply has been inserted into cache\n");
       struct sr_packet *waiting_packet = req->packets;
       /*Send all packets waiting for the request to finish*/
       while (waiting_packet)
@@ -183,11 +185,13 @@ void handle_arp(struct sr_instance *sr,
 
         /* Send the waiting packet to the sender and set to the next packet until NULL*/
         sr_send_packet(sr, waiting_packet->buf, waiting_packet->len, interface);
+        printf("Sent waiting packet to the sender\n");
         waiting_packet = waiting_packet->next;
       }
       /* Free all memory associated with this arp request entry*/
       sr_arpreq_destroy(cache, req);
     }
+    printf("FAILED to insert reply to router's cache\n");
   }
 }
 
@@ -385,14 +389,15 @@ void send_icmp(struct sr_instance *sr,
   /* Echo reply */
   if (type == 0)
   {
+    printf("Sending Echo Reply \n");
     int icmp_len = sizeof(sr_ethernet_hdr_t) + sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_hdr_t);
     uint8_t *icmp_packet = (uint8_t *)malloc(icmp_len);
 
     /* Initialize header for the raw ethernet frame of icmp packet*/
     sr_ethernet_hdr_t *icmp_ether_hdr = (sr_ethernet_hdr_t *)icmp_packet;
     /* the source is input packet's interface, and the destination is input packet's source */
-    memcpy(icmp_ether_hdr->ether_shost, incoming_interface->addr, sizeof(uint8_t) * ETHER_ADDR_LEN);
-    memcpy(icmp_ether_hdr->ether_dhost, input_ether_hdr->ether_shost, sizeof(uint8_t) * ETHER_ADDR_LEN);
+    memcpy(icmp_ether_hdr->ether_shost, incoming_interface->addr, ETHER_ADDR_LEN);
+    memcpy(icmp_ether_hdr->ether_dhost, input_ether_hdr->ether_shost, ETHER_ADDR_LEN);
     icmp_ether_hdr->ether_type = htons(ethertype_ip);
 
     /* Initialize header for the ip frame of icmp packet*/
@@ -423,10 +428,12 @@ void send_icmp(struct sr_instance *sr,
     /* If there is send, else send an ARP request for the next-hop IP, and add the packet to the queue of packets waiting on this ARP request.*/
     if (in_cache)
     {
+      printf("Found in cache, sending packet \n");
       sr_send_packet(sr, icmp_packet, icmp_len, outgoing_interface->name);
     }
     else
     {
+      printf("NOT in cache sending ARP request \n");
       struct sr_arpreq *req = sr_arpcache_queuereq(cache, rt_entry->gw.s_addr, icmp_packet, icmp_len, outgoing_interface->name);
       handle_arpreq(sr, req);
     }

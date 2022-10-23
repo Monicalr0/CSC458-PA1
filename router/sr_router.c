@@ -168,7 +168,7 @@ void handle_arp(struct sr_instance *sr,
     uint32_t ip = received_arp_hdr->ar_sip;
     struct sr_arpreq *req = sr_arpcache_insert(cache, mac, ip);
 
-    /* If succesfully inserted to the router's cache*/
+    /* Succesfully found this IP in the request queue*/
     if (req)
     {
       printf("Reply has been inserted into cache\n");

@@ -176,10 +176,11 @@ void handle_arp(struct sr_instance *sr,
       /*Send all packets waiting for the request to finish*/
       while (waiting_packet)
       {
+        struct sr_if *waiting_iface = sr_get_interface(sr, waiting_packet->iface);
         /*Initialize header for the raw ethernet frame of the waiting packet*/
         sr_ethernet_hdr_t *waiting_ether_hdr = (sr_ethernet_hdr_t *)waiting_packet->buf;
         /* the source address is the address of router's current interface */
-        memcpy(waiting_ether_hdr->ether_shost, current_interface->addr, ETHER_ADDR_LEN);
+        memcpy(waiting_ether_hdr->ether_shost, waiting_iface->addr, ETHER_ADDR_LEN);
         /* the destination address is the source address of received packet */
         memcpy(waiting_ether_hdr->ether_dhost, received_arp_hdr->ar_sha, ETHER_ADDR_LEN);
 

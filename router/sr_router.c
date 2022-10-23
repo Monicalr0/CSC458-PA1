@@ -248,7 +248,6 @@ void handle_ip(struct sr_instance *sr,
     return;
   }
 
-
   /* Packet is sent to one of your router’s IP addresses */
   if (is_for_me(sr, ip_hdr))
   {
@@ -264,10 +263,12 @@ void handle_ip(struct sr_instance *sr,
         fprintf(stderr, "Error: Packet is too small\n");
         return;
       }
-      int checksum = cksum(icmp_hdr, len - minLen);
-      if (checksum != icmp_hdr->icmp_sum)
+      uint16_t received_icmp_checksum = icmp_hdr->icmp_sum;
+      icmp_hdr->icmp_sum = 0;
+      uint16_t icmp_checksum = cksum(icmp_hdr, len - minLen);
+      if (icmp_checksum != received_icmp_checksum)
       {
-        fprintf(stderr, "Error: Packet has incorrect checksum\n");
+        fprintf(stderr, "Error: Packet has incorrect checksum??\n");
         return;
       }
 
@@ -279,9 +280,10 @@ void handle_ip(struct sr_instance *sr,
       }
     }
     else
-    { /* if TCP/ UDP send icmp port unreachable 
+    { /* if TCP/ UDP send icmp port unreachable
         otherwise ignore*/
-      if ((ip_hdr->ip_p == ip_protocol_tcp) || (ip_hdr->ip_p == ip_protocol_udp)) {
+      if ((ip_hdr->ip_p == ip_protocol_tcp) || (ip_hdr->ip_p == ip_protocol_udp))
+      {
         send_icmp(sr, packet, iface, 3, 3);
       }
     }
@@ -310,9 +312,9 @@ void handle_ip(struct sr_instance *sr,
     printf("Call longest_prefix_match - handle ip \n");
     struct sr_rt *longest_prefix = longest_prefix_match(sr, ip_hdr->ip_dst);
     printf("Returned from longest_prefix_match - handle ip \n");
-/*     printf("longest_prefix interface: %s \n", longest_prefix->interface);
-    printf("longest_prefix gateway ip:\n");
-    print_addr_ip_int(ntohl(longest_prefix->gw.s_addr)); */
+    /*     printf("longest_prefix interface: %s \n", longest_prefix->interface);
+        printf("longest_prefix gateway ip:\n");
+        print_addr_ip_int(ntohl(longest_prefix->gw.s_addr)); */
 
     /*If no matching found, drop packet and send unreachable*/
     if (!longest_prefix)
@@ -321,7 +323,6 @@ void handle_ip(struct sr_instance *sr,
       send_icmp(sr, packet, iface, 3, 0);
       return;
     }
-
 
     printf("Match found in routing table - handle ip \n");
 
@@ -355,13 +356,13 @@ void handle_ip(struct sr_instance *sr,
 
 /* Send ICMP packet to input packet's source */
 void send_icmp(struct sr_instance *sr,
-              uint8_t *packet,
-              struct sr_if *incoming_interface,
-              uint8_t type, 
-              uint8_t code)
+               uint8_t *packet,
+               struct sr_if *incoming_interface,
+               uint8_t type,
+               uint8_t code)
 {
   printf("Sending ICMP message \n");
-  
+
   /* Initialize headers for input packet*/
   struct sr_arpcache *cache = &sr->cache;
   sr_ethernet_hdr_t *input_ether_hdr = (sr_ethernet_hdr_t *)packet;
@@ -373,8 +374,8 @@ void send_icmp(struct sr_instance *sr,
   print_hdr_ip(packet + sizeof(sr_ethernet_hdr_t));
   printf("----------------\n");
 
-  struct sr_rt* rt_entry = longest_prefix_match(sr, input_ip_hdr->ip_src);
-  if (!rt_entry) 
+  struct sr_rt *rt_entry = longest_prefix_match(sr, input_ip_hdr->ip_src);
+  if (!rt_entry)
   {
     fprintf(stderr, "Error: IP has no match in the router's rounting table.\n");
     return;
@@ -382,7 +383,8 @@ void send_icmp(struct sr_instance *sr,
   struct sr_if *outgoing_interface = sr_get_interface(sr, rt_entry->interface);
 
   /* Echo reply */
-  if (type == 0) {
+  if (type == 0)
+  {
     int icmp_len = sizeof(sr_ethernet_hdr_t) + sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_hdr_t);
     uint8_t *icmp_packet = (uint8_t *)malloc(icmp_len);
 
@@ -412,27 +414,28 @@ void send_icmp(struct sr_instance *sr,
     icmp_hdr->icmp_sum = 0;
     icmp_hdr->icmp_sum = cksum(icmp_hdr, sizeof(sr_icmp_hdr_t));
 
-
     printf("In send_icmp, icmp type 0 packet: \n");
     print_hdrs(icmp_packet, icmp_len);
     printf("----------------\n");
 
-
     /* check the ARP cache for the corresponding MAC address  */
     struct sr_arpentry *in_cache = sr_arpcache_lookup(cache, rt_entry->gw.s_addr);
     /* If there is send, else send an ARP request for the next-hop IP, and add the packet to the queue of packets waiting on this ARP request.*/
-    if (in_cache) {
+    if (in_cache)
+    {
       sr_send_packet(sr, icmp_packet, icmp_len, outgoing_interface->name);
     }
-    else {
+    else
+    {
       struct sr_arpreq *req = sr_arpcache_queuereq(cache, rt_entry->gw.s_addr, icmp_packet, icmp_len, outgoing_interface->name);
       handle_arpreq(sr, req);
     }
     free(icmp_packet);
-	}
-	
-	/* Rest of the ICMP messages */
-	else {
+  }
+
+  /* Rest of the ICMP messages */
+  else
+  {
     int icmp_len = sizeof(sr_ethernet_hdr_t) + sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t);
     uint8_t *icmp_packet = (uint8_t *)malloc(icmp_len);
 
@@ -450,10 +453,12 @@ void send_icmp(struct sr_instance *sr,
     icmp_ip_hdr->ip_ttl = INIT_TTL;
     icmp_ip_hdr->ip_p = ip_protocol_icmp;
 
-    if (code == 3) {
+    if (code == 3)
+    {
       icmp_ip_hdr->ip_src = input_ip_hdr->ip_dst;
     }
-    else {
+    else
+    {
       icmp_ip_hdr->ip_src = incoming_interface->ip;
     }
 
@@ -478,18 +483,20 @@ void send_icmp(struct sr_instance *sr,
     /* check the ARP cache for the corresponding MAC address  */
     struct sr_arpentry *in_cache = sr_arpcache_lookup(cache, rt_entry->gw.s_addr);
     /* If there is send, else send an ARP request for the next-hop IP, and add the packet to the queue of packets waiting on this ARP request.*/
-    if (in_cache) {
+    if (in_cache)
+    {
       sr_send_packet(sr, icmp_packet, icmp_len, outgoing_interface->name);
     }
-    else {
+    else
+    {
       struct sr_arpreq *req = sr_arpcache_queuereq(cache, rt_entry->gw.s_addr, icmp_packet, icmp_len, outgoing_interface->name);
       handle_arpreq(sr, req);
     }
     free(icmp_packet);
-	} 
+  }
 }
 
-struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
+struct sr_rt *longest_prefix_match(struct sr_instance *sr, uint32_t ip)
 {
   struct sr_rt *routing_table = sr->routing_table;
   struct sr_rt *longest_entry = NULL;
@@ -517,4 +524,3 @@ struct sr_rt* longest_prefix_match(struct sr_instance *sr, uint32_t ip)
   }
   return longest_entry;
 }
-

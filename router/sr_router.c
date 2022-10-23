@@ -191,7 +191,10 @@ void handle_arp(struct sr_instance *sr,
       /* Free all memory associated with this arp request entry*/
       sr_arpreq_destroy(cache, req);
     }
-    printf("FAILED to insert reply to router's cache\n");
+    else
+    {
+      printf("FAILED to insert reply to router's cache\n");
+    }
   }
 }
 
@@ -286,8 +289,6 @@ void handle_ip(struct sr_instance *sr,
     else
     { /* if TCP/ UDP send icmp port unreachable
         otherwise ignore*/
-      if ((ip_hdr->ip_p == ip_protocol_tcp) || (ip_hdr->ip_p == ip_protocol_udp))
-      {
       send_icmp(sr, packet, iface, 3, 3);
     }
   }

@@ -86,7 +86,9 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             memset(arp_req_arp_hdr->ar_tha, 0xff, ETHER_ADDR_LEN);
             arp_req_arp_hdr->ar_tip = req->ip;
 
-            printf("Send Packet \n");
+            printf("Send ARP Request Packet \n");
+            print_hdrs(arp_req_packet, len);
+            printf("----------------\n");
             /* Send the arp request packet and free the malloc space */
             sr_send_packet(sr, arp_req_packet, len, waiting_iface->name);
             free(arp_req_packet);

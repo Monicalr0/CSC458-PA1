@@ -176,6 +176,9 @@ void handle_arp(struct sr_instance *sr,
       /*Send all packets waiting for the request to finish*/
       while (waiting_packet)
       {
+        printf("Waiting Packet: \n");
+        print_hdr_ip(waiting_packet + sizeof(sr_ethernet_hdr_t));
+        printf("----------------\n");
         struct sr_if *waiting_iface = sr_get_interface(sr, waiting_packet->iface);
         /*Initialize header for the raw ethernet frame of the waiting packet*/
         sr_ethernet_hdr_t *waiting_ether_hdr = (sr_ethernet_hdr_t *)waiting_packet->buf;
@@ -187,6 +190,9 @@ void handle_arp(struct sr_instance *sr,
         /* Send the waiting packet to the sender and set to the next packet until NULL*/
         sr_send_packet(sr, waiting_packet->buf, waiting_packet->len, waiting_packet->iface);
         printf("Sent waiting packet to the sender\n");
+        printf("Waiting Packet Sent: \n");
+        print_hdr_ip(waiting_packet + sizeof(sr_ethernet_hdr_t));
+        printf("----------------\n");
         waiting_packet = waiting_packet->next;
       }
       /* Free all memory associated with this arp request entry*/

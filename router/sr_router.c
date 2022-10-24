@@ -179,7 +179,7 @@ void handle_arp(struct sr_instance *sr,
         struct sr_if *waiting_iface = sr_get_interface(sr, waiting_packet->iface);
         /*Initialize header for the raw ethernet frame of the waiting packet*/
         sr_ethernet_hdr_t *waiting_ether_hdr = (sr_ethernet_hdr_t *)waiting_packet->buf;
-        /* the source address is the address of router's current interface */
+        /* the source address is the address of waiting packet's interface */
         memcpy(waiting_ether_hdr->ether_shost, waiting_iface->addr, ETHER_ADDR_LEN);
         /* the destination address is the source address of received packet */
         memcpy(waiting_ether_hdr->ether_dhost, received_arp_hdr->ar_sha, ETHER_ADDR_LEN);
@@ -194,7 +194,7 @@ void handle_arp(struct sr_instance *sr,
     }
     else
     {
-      printf("FAILED to insert reply to router's cache\n");
+      printf("FAILED to find the IP in cache, added IP to cache\n");
     }
   }
 }
@@ -284,13 +284,13 @@ void handle_ip(struct sr_instance *sr,
       if (icmp_hdr->icmp_type == 8)
       {
         printf("Packet is echo request!! \n");
-        send_icmp(sr, packet, iface, 0, 0);
+        send_icmp(sr, packet, len, iface, 0, 0);
       }
     }
     else
     { /* if TCP/ UDP send icmp port unreachable
         otherwise ignore*/
-      send_icmp(sr, packet, iface, 3, 3);
+      send_icmp(sr, packet, len, iface, 3, 3);
     }
   }
   else
@@ -307,7 +307,7 @@ void handle_ip(struct sr_instance *sr,
     if (ip_hdr->ip_ttl == 0)
     {
       printf("TTL reached zero, Stop forwarding.\n");
-      send_icmp(sr, packet, iface, 11, 0);
+      send_icmp(sr, packet, len, iface, 11, 0);
       return;
     }
     /*Recalc checksum, previous checksum is set to 0 when doing sanity check*/
@@ -325,7 +325,7 @@ void handle_ip(struct sr_instance *sr,
     if (!longest_prefix)
     {
       printf("No match in routing table - handle ip \n");
-      send_icmp(sr, packet, iface, 3, 0);
+      send_icmp(sr, packet, len, iface, 3, 0);
       return;
     }
 
@@ -362,6 +362,7 @@ void handle_ip(struct sr_instance *sr,
 /* Send ICMP packet to input packet's source */
 void send_icmp(struct sr_instance *sr,
                uint8_t *packet,
+               unsigned int len,
                struct sr_if *incoming_interface,
                uint8_t type,
                uint8_t code)
@@ -391,7 +392,7 @@ void send_icmp(struct sr_instance *sr,
   if (type == 0)
   {
     printf("Sending Echo Reply \n");
-    int icmp_len = sizeof(sr_ethernet_hdr_t) + sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_hdr_t);
+    int icmp_len = len;
     uint8_t *icmp_packet = (uint8_t *)malloc(icmp_len);
 
     /* Initialize header for the raw ethernet frame of icmp packet*/
@@ -404,7 +405,6 @@ void send_icmp(struct sr_instance *sr,
     /* Initialize header for the ip frame of icmp packet*/
     sr_ip_hdr_t *icmp_ip_hdr = (sr_ip_hdr_t *)(icmp_packet + sizeof(sr_ethernet_hdr_t));
     memcpy(icmp_ip_hdr, input_ip_hdr, sizeof(sr_ip_hdr_t));
-    icmp_ip_hdr->ip_len = htons(sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_hdr_t));
     icmp_ip_hdr->ip_ttl = INIT_TTL;
     icmp_ip_hdr->ip_p = ip_protocol_icmp;
     /* source is from router */
@@ -418,7 +418,7 @@ void send_icmp(struct sr_instance *sr,
     icmp_hdr->icmp_type = type;
     icmp_hdr->icmp_code = code;
     icmp_hdr->icmp_sum = 0;
-    icmp_hdr->icmp_sum = cksum(icmp_hdr, sizeof(sr_icmp_hdr_t));
+    icmp_hdr->icmp_sum = cksum(icmp_hdr, icmp_len - sizeof(sr_ethernet_hdr_t) - sizeof(sr_ip_hdr_t));
 
     printf("In send_icmp, icmp type 0 packet: \n");
     print_hdrs(icmp_packet, icmp_len);
@@ -457,19 +457,10 @@ void send_icmp(struct sr_instance *sr,
     /* Initialize header for the ip frame of icmp packet*/
     sr_ip_hdr_t *icmp_ip_hdr = (sr_ip_hdr_t *)(icmp_packet + sizeof(sr_ethernet_hdr_t));
     memcpy(icmp_ip_hdr, input_ip_hdr, sizeof(sr_ip_hdr_t));
-    icmp_ip_hdr->ip_len = htons(sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t));
     icmp_ip_hdr->ip_ttl = INIT_TTL;
     icmp_ip_hdr->ip_p = ip_protocol_icmp;
-
-    if (code == 3)
-    {
-      icmp_ip_hdr->ip_src = input_ip_hdr->ip_dst;
-    }
-    else
-    {
-      icmp_ip_hdr->ip_src = incoming_interface->ip;
-    }
-
+    icmp_ip_hdr->ip_len = htons(sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t));
+    icmp_ip_hdr->ip_src = incoming_interface->ip;
     icmp_ip_hdr->ip_dst = input_ip_hdr->ip_src;
     icmp_ip_hdr->ip_sum = 0;
     icmp_ip_hdr->ip_sum = cksum(icmp_ip_hdr, sizeof(sr_ip_hdr_t));
@@ -482,6 +473,7 @@ void send_icmp(struct sr_instance *sr,
     icmp_hdr->next_mtu = 0;
     icmp_hdr->icmp_sum = 0;
     memcpy(icmp_hdr->data, input_ip_hdr, ICMP_DATA_SIZE);
+    memcpy(icmp_hdr->data + sizeof(sr_ip_hdr_t), input_ip_hdr + sizeof(sr_ip_hdr_t), 8);
     icmp_hdr->icmp_sum = cksum(icmp_hdr, sizeof(sr_icmp_t3_hdr_t));
 
     printf("In send_icmp, icmp type 3 packet: \n");

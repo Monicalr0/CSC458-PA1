@@ -61,7 +61,7 @@ void sr_init(struct sr_instance* );
 void sr_handlepacket(struct sr_instance* , uint8_t * , unsigned int , char* );
 void handle_arp(struct sr_instance* , uint8_t * , unsigned int , char* );
 void handle_ip(struct sr_instance* , uint8_t * , unsigned int , char* );
-extern void send_icmp(struct sr_instance* , uint8_t * , struct sr_if* , uint8_t , uint8_t );
+extern void send_icmp(struct sr_instance* , uint8_t * , unsigned int , struct sr_if* , uint8_t , uint8_t );
 
 struct sr_rt* longest_prefix_match(struct sr_instance*, uint32_t );
 

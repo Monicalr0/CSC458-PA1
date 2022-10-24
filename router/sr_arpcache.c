@@ -44,7 +44,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             while (waiting_packet)
             {
                 struct sr_if *waiting_iface = sr_get_interface(sr, waiting_packet->iface);
-                send_icmp(sr, waiting_packet->buf, waiting_iface, 3, 1);
+                send_icmp(sr, waiting_packet->buf, waiting_packet->len, waiting_iface, 3, 1);
                 waiting_packet = waiting_packet->next;
             }
             sr_arpreq_destroy(cache, req);
@@ -83,7 +83,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
             memcpy(arp_req_arp_hdr->ar_sha, waiting_iface->addr, ETHER_ADDR_LEN);
             arp_req_arp_hdr->ar_sip = waiting_iface->ip;
             /* Target ip is the source of received request packet */
-            memset(arp_req_arp_hdr->ar_tha, 0xff, ETHER_ADDR_LEN);
+            memset(arp_req_arp_hdr->ar_tha, 0x00, ETHER_ADDR_LEN);
             arp_req_arp_hdr->ar_tip = req->ip;
 
             printf("Send ARP Request Packet \n");

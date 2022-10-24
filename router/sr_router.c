@@ -403,19 +403,16 @@ void send_icmp(struct sr_instance *sr,
     printf("Sending Echo Reply \n");
     int icmp_len = len;
     uint8_t *icmp_packet = (uint8_t *)malloc(icmp_len);
+    memcpy(icmp_packet, packet, icmp_len);
 
     /* Initialize header for the raw ethernet frame of icmp packet*/
     sr_ethernet_hdr_t *icmp_ether_hdr = (sr_ethernet_hdr_t *)icmp_packet;
     /* the source is input packet's interface, and the destination is input packet's source */
     memcpy(icmp_ether_hdr->ether_shost, incoming_interface->addr, ETHER_ADDR_LEN);
     memcpy(icmp_ether_hdr->ether_dhost, input_ether_hdr->ether_shost, ETHER_ADDR_LEN);
-    icmp_ether_hdr->ether_type = htons(ethertype_ip);
 
     /* Initialize header for the ip frame of icmp packet*/
     sr_ip_hdr_t *icmp_ip_hdr = (sr_ip_hdr_t *)(icmp_packet + sizeof(sr_ethernet_hdr_t));
-    memcpy(icmp_ip_hdr, input_ip_hdr, sizeof(sr_ip_hdr_t));
-    icmp_ip_hdr->ip_ttl = INIT_TTL;
-    icmp_ip_hdr->ip_p = ip_protocol_icmp;
     /* source is from router */
     icmp_ip_hdr->ip_src = input_ip_hdr->ip_dst;
     icmp_ip_hdr->ip_dst = input_ip_hdr->ip_src;

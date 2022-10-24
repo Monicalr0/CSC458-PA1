@@ -168,7 +168,7 @@ void handle_arp(struct sr_instance *sr,
     if req:
       send all packets on the req->packets linked list
       arpreq_destroy(req) */
-    
+
     struct sr_arpcache *cache = &sr->cache;
     unsigned char *mac = received_arp_hdr->ar_sha;
     uint32_t ip = received_arp_hdr->ar_sip;
@@ -470,15 +470,15 @@ void send_icmp(struct sr_instance *sr,
     icmp_ip_hdr->ip_ttl = INIT_TTL;
     icmp_ip_hdr->ip_p = ip_protocol_icmp;
 
-    if (code == 3)
+    /*if (code == 3)
     {
       icmp_ip_hdr->ip_src = input_ip_hdr->ip_dst;
     }
     else
     {
-      icmp_ip_hdr->ip_src = incoming_interface->ip;
-    }
 
+    }*/
+    icmp_ip_hdr->ip_src = incoming_interface->ip;
     icmp_ip_hdr->ip_dst = input_ip_hdr->ip_src;
     icmp_ip_hdr->ip_sum = 0;
     icmp_ip_hdr->ip_sum = cksum(icmp_ip_hdr, sizeof(sr_ip_hdr_t));
@@ -489,8 +489,8 @@ void send_icmp(struct sr_instance *sr,
     icmp_hdr->icmp_code = code;
     icmp_hdr->unused = 0;
     icmp_hdr->next_mtu = 0;
-    icmp_hdr->icmp_sum = 0;
     memcpy(icmp_hdr->data, input_ip_hdr, ICMP_DATA_SIZE);
+    icmp_hdr->icmp_sum = 0;
     icmp_hdr->icmp_sum = cksum(icmp_hdr, sizeof(sr_icmp_t3_hdr_t));
 
     printf("In send_icmp, icmp type 3 packet: \n");

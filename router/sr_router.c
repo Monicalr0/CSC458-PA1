@@ -466,8 +466,8 @@ void send_icmp(struct sr_instance *sr,
 
     /* Initialize header for the ip frame of icmp packet*/
     sr_ip_hdr_t *icmp_ip_hdr = (sr_ip_hdr_t *)(icmp_packet + sizeof(sr_ethernet_hdr_t));
-    icmp_ip_hdr->ip_len = htons(sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t));
-    icmp_ip_hdr->ip_ttl = INIT_TTL;
+/*     icmp_ip_hdr->ip_len = htons(sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t));
+    icmp_ip_hdr->ip_ttl = INIT_TTL; */
     icmp_ip_hdr->ip_p = ip_protocol_icmp;
 
     if (code == 3)

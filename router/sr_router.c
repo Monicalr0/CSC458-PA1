@@ -502,10 +502,12 @@ void send_icmp(struct sr_instance *sr,
     /* If there is send, else send an ARP request for the next-hop IP, and add the packet to the queue of packets waiting on this ARP request.*/
     if (in_cache)
     {
+      printf("Found in cache, sending packet \n");
       sr_send_packet(sr, icmp_packet, icmp_len, outgoing_interface->name);
     }
     else
     {
+      printf("NOT in cache sending ARP request \n");
       struct sr_arpreq *req = sr_arpcache_queuereq(cache, rt_entry->gw.s_addr, icmp_packet, icmp_len, outgoing_interface->name);
       handle_arpreq(sr, req);
     }

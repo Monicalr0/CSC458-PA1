@@ -180,7 +180,7 @@ void handle_arp(struct sr_instance *sr,
       while (waiting_packet)
       {
         printf("Waiting Packet: \n");
-        print_hdrs(waiting_packet, waiting_packet->len);
+        print_hdrs(waiting_packet->buf, waiting_packet->len);
         printf("----------------\n");
         struct sr_if *waiting_iface = sr_get_interface(sr, waiting_packet->iface);
         /*Initialize header for the raw ethernet frame of the waiting packet*/
@@ -194,7 +194,7 @@ void handle_arp(struct sr_instance *sr,
         sr_send_packet(sr, waiting_packet->buf, waiting_packet->len, waiting_packet->iface);
         printf("Sent waiting packet to the sender\n");
         printf("Waiting Packet Sent: \n");
-        print_hdrs(waiting_packet, waiting_packet->len);
+        print_hdrs(waiting_packet->buf, waiting_packet->len);
         printf("----------------\n");
         waiting_packet = waiting_packet->next;
       }

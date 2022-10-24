@@ -147,6 +147,9 @@ void handle_arp(struct sr_instance *sr,
     /* Send the reply packet to the sender and free the malloc space */
     printf("Reply has been sent to the ARP request\n");
     sr_send_packet(sr, reply_packet, len, interface);
+    printf("Reply Packet: \n");
+    print_hdrs(reply_packet, len);
+    printf("----------------\n");
     free(reply_packet);
   }
 

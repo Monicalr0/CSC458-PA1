@@ -31,8 +31,7 @@ void handle_arpreq(struct sr_instance *sr, struct sr_arpreq *req)
                     req->times_sent++ */
     printf("Handling ARP request \n");
     struct sr_arpcache *cache = &sr->cache;
-    time_t now;
-    time(&now);
+    time_t now = time(0);
     if (difftime(now, req->sent) >= 1.0)
     {
         printf("1 second has passed \n");

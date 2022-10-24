@@ -470,14 +470,14 @@ void send_icmp(struct sr_instance *sr,
     icmp_ip_hdr->ip_ttl = INIT_TTL;
     icmp_ip_hdr->ip_p = ip_protocol_icmp;
 
-/*     if (code == 3)
+    if (code == 3)
     {
       icmp_ip_hdr->ip_src = input_ip_hdr->ip_dst;
     }
     else
-    { */
+    {
       icmp_ip_hdr->ip_src = incoming_interface->ip;
-/*     } */
+    }
 
     icmp_ip_hdr->ip_dst = input_ip_hdr->ip_src;
     icmp_ip_hdr->ip_sum = 0;

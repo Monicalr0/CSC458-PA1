@@ -452,12 +452,13 @@ void send_icmp(struct sr_instance *sr,
   {
     int icmp_len = sizeof(sr_ethernet_hdr_t) + sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t);
     uint8_t *icmp_packet = (uint8_t *)malloc(icmp_len);
+    memcpy(icmp_packet, packet, icmp_len);
 
     /* Initialize header for the raw ethernet frame of icmp packet*/
     sr_ethernet_hdr_t *icmp_ether_hdr = (sr_ethernet_hdr_t *)icmp_packet;
     /* the source is waiting packet's destination, and the destination is waiting packet's source */
-    memcpy(icmp_ether_hdr->ether_shost, input_ether_hdr->ether_dhost, sizeof(uint8_t) * ETHER_ADDR_LEN);
-    memcpy(icmp_ether_hdr->ether_dhost, input_ether_hdr->ether_shost, sizeof(uint8_t) * ETHER_ADDR_LEN);
+    memcpy(icmp_ether_hdr->ether_shost, incoming_interface->addr, ETHER_ADDR_LEN);
+    memcpy(icmp_ether_hdr->ether_dhost, input_ether_hdr->ether_shost, ETHER_ADDR_LEN);
     icmp_ether_hdr->ether_type = htons(ethertype_ip);
 
     /* Initialize header for the ip frame of icmp packet*/
@@ -465,8 +466,15 @@ void send_icmp(struct sr_instance *sr,
     memcpy(icmp_ip_hdr, input_ip_hdr, sizeof(sr_ip_hdr_t));
     icmp_ip_hdr->ip_ttl = INIT_TTL;
     icmp_ip_hdr->ip_p = ip_protocol_icmp;
-    icmp_ip_hdr->ip_len = htons(sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t));
-    icmp_ip_hdr->ip_src = incoming_interface->ip;
+    if (code == 3)
+    {
+      icmp_ip_hdr->ip_src = input_ip_hdr->ip_dst;
+      icmp_ip_hdr->ip_len = htons(sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t));
+    }
+    else
+    {
+      icmp_ip_hdr->ip_src = incoming_interface->ip;
+    }
     icmp_ip_hdr->ip_dst = input_ip_hdr->ip_src;
     icmp_ip_hdr->ip_sum = 0;
     icmp_ip_hdr->ip_sum = cksum(icmp_ip_hdr, sizeof(sr_ip_hdr_t));

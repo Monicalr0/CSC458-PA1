@@ -96,6 +96,9 @@ void handle_arp(struct sr_instance *sr,
   assert(sr);
   assert(packet);
   assert(interface);
+  printf("ARP Packet: \n");
+  print_hdrs(packet, len);
+  printf("----------------\n");
 
   if (len < sizeof(sr_ethernet_hdr_t) + sizeof(sr_arp_hdr_t))
   {
@@ -177,7 +180,7 @@ void handle_arp(struct sr_instance *sr,
       while (waiting_packet)
       {
         printf("Waiting Packet: \n");
-        print_hdr_ip(waiting_packet + sizeof(sr_ethernet_hdr_t));
+        print_hdrs(waiting_packet, waiting_packet->len);
         printf("----------------\n");
         struct sr_if *waiting_iface = sr_get_interface(sr, waiting_packet->iface);
         /*Initialize header for the raw ethernet frame of the waiting packet*/
@@ -191,7 +194,7 @@ void handle_arp(struct sr_instance *sr,
         sr_send_packet(sr, waiting_packet->buf, waiting_packet->len, waiting_packet->iface);
         printf("Sent waiting packet to the sender\n");
         printf("Waiting Packet Sent: \n");
-        print_hdr_ip(waiting_packet + sizeof(sr_ethernet_hdr_t));
+        print_hdrs(waiting_packet, waiting_packet->len);
         printf("----------------\n");
         waiting_packet = waiting_packet->next;
       }
